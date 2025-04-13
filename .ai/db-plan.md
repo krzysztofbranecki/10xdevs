@@ -3,19 +3,21 @@
 ## 1. Tabele
 
 ### users
+
 - **id**: UUID PRIMARY KEY
 - **email**: VARCHAR NOT NULL UNIQUE
 - **created_at**: TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 - **encrypted_password**: TEXT NOT NULL
 - **confirmed_at**: TIMESTAMP WITH TIME ZONE
 
-*Indeksy:* Unikalny indeks na kolumnie email.
+_Indeksy:_ Unikalny indeks na kolumnie email.
 
-*Uwagi:* Tabela zarządzana przez Supabase oraz stosowana jako referencja w innych tabelach.
+_Uwagi:_ Tabela zarządzana przez Supabase oraz stosowana jako referencja w innych tabelach.
 
 ---
 
 ### flashcards
+
 - **id**: UUID PRIMARY KEY
 - **front**: VARCHAR(200) NOT NULL
 - **back**: VARCHAR(500) NOT NULL
@@ -25,13 +27,14 @@
 - **created_at**: TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 - **updated_at**: TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 
-*Indeksy:* Indeksy na kolumnach: user_id, source_id, generation_id.
+_Indeksy:_ Indeksy na kolumnach: user_id, source_id, generation_id.
 
-*RLS:* Dostęp ograniczony do wierszy, gdzie user_id = bieżący użytkownik.
+_RLS:_ Dostęp ograniczony do wierszy, gdzie user_id = bieżący użytkownik.
 
 ---
 
 ### source
+
 - **id**: UUID PRIMARY KEY
 - **model**: VARCHAR NOT NULL
 - **text_hash**: VARCHAR NOT NULL
@@ -41,13 +44,14 @@
 - **created_at**: TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 - **updated_at**: TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 
-*Indeksy:* Indeks na kolumnie user_id.
+_Indeksy:_ Indeks na kolumnie user_id.
 
-*RLS:* Dostęp ograniczony do wierszy, gdzie user_id = bieżący użytkownik.
+_RLS:_ Dostęp ograniczony do wierszy, gdzie user_id = bieżący użytkownik.
 
 ---
 
 ### generations
+
 - **id**: UUID PRIMARY KEY
 - **user_id**: UUID REFERENCES users(id) ON DELETE CASCADE
 - **source_id**: UUID REFERENCES source(id) ON DELETE CASCADE
@@ -57,13 +61,14 @@
 - **created_at**: TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 - **updated_at**: TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 
-*Indeksy:* Indeksy na kolumnach: user_id, source_id.
+_Indeksy:_ Indeksy na kolumnach: user_id, source_id.
 
-*RLS:* Dostęp ograniczony do wierszy, gdzie user_id = bieżący użytkownik.
+_RLS:_ Dostęp ograniczony do wierszy, gdzie user_id = bieżący użytkownik.
 
 ---
 
 ### generation_errors_log
+
 - **id**: UUID PRIMARY KEY
 - **user_id**: UUID REFERENCES users(id) ON DELETE CASCADE
 - **source_id**: UUID REFERENCES source(id) ON DELETE CASCADE
@@ -71,9 +76,9 @@
 - **error_message**: TEXT NOT NULL
 - **created_at**: TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 
-*Indeksy:* Indeksy na kolumnach: user_id, source_id.
+_Indeksy:_ Indeksy na kolumnach: user_id, source_id.
 
-*RLS:* Dostęp ograniczony do wierszy, gdzie user_id = bieżący użytkownik.
+_RLS:_ Dostęp ograniczony do wierszy, gdzie user_id = bieżący użytkownik.
 
 ---
 
@@ -106,7 +111,7 @@ CREATE POLICY user_policy ON flashcards
   USING (user_id = current_setting('app.current_user_id')::uuid);
 ```
 
-*Podobne polityki należy wdrożyć dla tabel: source, generations i generation_errors_log.*
+_Podobne polityki należy wdrożyć dla tabel: source, generations i generation_errors_log._
 
 ---
 
@@ -115,4 +120,4 @@ CREATE POLICY user_policy ON flashcards
 - Schemat stosuje typ UUID dla kluczy głównych, co jest zgodne z architekturą Supabase.
 - Kolumny audytowe (`created_at`, `updated_at`) zostały dodane do wszystkich tabel, gdzie ma to zastosowanie, aby umożliwić śledzenie zmian.
 - Wszystkie relacje FK korzystają z reguły ON DELETE CASCADE, gwarantując automatyczne usuwanie powiązanych rekordów przy usunięciu rekordu nadrzędnego.
-- Schemat jest zoptymalizowany pod kątem PostgreSQL oraz integracji z wybranym stackiem technologicznym (Astro, React, Tailwind, Shadcn/ui, Supabase). 
+- Schemat jest zoptymalizowany pod kątem PostgreSQL oraz integracji z wybranym stackiem technologicznym (Astro, React, Tailwind, Shadcn/ui, Supabase).
