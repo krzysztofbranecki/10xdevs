@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { Toaster } from "sonner";
 
 interface Props {
   title?: string;
@@ -8,17 +9,19 @@ interface Props {
 const { title = "10x Astro Starter" } = Astro.props;
 ---
 
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="pl">
   <head>
     <meta charset="UTF-8" />
+    <meta name="description" content="Aplikacja do nauki z fiszkami" />
     <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
+    <title>10xDevs - Nauka z fiszkami</title>
   </head>
   <body>
     <slot />
+    <Toaster />
   </body>
 </html>
 
