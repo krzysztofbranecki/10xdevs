@@ -53,8 +53,10 @@ export const GenerateFlashcardsView = () => {
     setError(validateInputText(value));
   };
 
-  const handleEdit = (index: number) => {
-    // This will be handled by the FlashcardProposalList component
+  const handleEdit = (index: number, newProposal: FlashcardProposalDto) => {
+    const newProposals = [...proposals];
+    newProposals[index] = newProposal;
+    setProposals(newProposals);
   };
 
   const handleAccept = async (index: number) => {
