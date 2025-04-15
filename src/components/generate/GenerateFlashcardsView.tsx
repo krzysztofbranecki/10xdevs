@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { FlashcardProposalDto } from "@/types/flashcard";
-import { FlashcardProposalList } from "../flashcards/FlashcardProposalList";
+import type { FlashcardProposalDto } from "@/types";
+import { FlashcardProposalList } from "./FlashcardProposalList";
 import { LoadingIndicator } from "@/components/common/LoadingIndicator";
 import { validateInputText } from "@/utils/validation";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ export const GenerateFlashcardsView = () => {
 
   const handleGenerate = async () => {
     try {
+      console.log("handleGenerate");
       setError(null);
       setLoading(true);
 
@@ -22,12 +23,12 @@ export const GenerateFlashcardsView = () => {
         return;
       }
 
-      const response = await fetch("/api/generate", {
+      const response = await fetch("/api/flashcards/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text: inputText }),
+        body: JSON.stringify({ input_text: inputText }),
       });
 
       if (!response.ok) {
@@ -35,7 +36,8 @@ export const GenerateFlashcardsView = () => {
       }
 
       const data = await response.json();
-      setProposals(data);
+      console.log("Received proposals:", data);
+      setProposals(data.proposals);
       toast.success("Fiszki zostały wygenerowane!");
     } catch (err) {
       setError("Wystąpił błąd podczas generowania fiszek");
@@ -93,9 +95,7 @@ export const GenerateFlashcardsView = () => {
           onChange={handleInputChange}
         />
         <div className="flex justify-between items-center">
-          <p className="text-sm text-gray-500">
-            {inputText.length}/1000 znaków
-          </p>
+          <p className="text-sm text-gray-500">{inputText.length}/1000 znaków</p>
           <button
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
             onClick={handleGenerate}
@@ -104,19 +104,26 @@ export const GenerateFlashcardsView = () => {
             {loading ? "Generowanie..." : "Generuj fiszki"}
           </button>
         </div>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && (
+          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm font-medium">{error}</p>
+          </div>
+        )}
       </div>
 
       {loading && <LoadingIndicator />}
 
       {proposals.length > 0 && (
-        <FlashcardProposalList
-          proposals={proposals}
-          onEdit={handleEdit}
-          onAccept={handleAccept}
-          onDecline={handleDecline}
-        />
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">Wygenerowane fiszki</h2>
+          <FlashcardProposalList
+            proposals={proposals}
+            onEdit={handleEdit}
+            onAccept={handleAccept}
+            onDecline={handleDecline}
+          />
+        </div>
       )}
     </div>
   );
-}; 
+};
