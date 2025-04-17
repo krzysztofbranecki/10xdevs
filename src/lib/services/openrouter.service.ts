@@ -1,4 +1,5 @@
-import axios, { AxiosInstance, AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
+import type { AxiosInstance } from "axios";
 import { z } from "zod";
 
 // Types
@@ -37,7 +38,7 @@ export class OpenRouterError extends Error {
   constructor(
     public type: OpenRouterErrorType,
     message: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = "OpenRouterError";
@@ -101,7 +102,7 @@ export class OpenRouterService {
     }
   }
 
-  private async validateResponse(response: any): Promise<boolean> {
+  private async validateResponse(response: unknown): Promise<boolean> {
     try {
       chatResponseSchema.parse(response);
       return true;
@@ -135,13 +136,14 @@ export class OpenRouterService {
 
   private async retryRequest<T>(fn: () => Promise<T>): Promise<T> {
     let lastError: Error | undefined;
+    const maxRetries = this.config.maxRetries ?? 3;
 
-    for (let attempt = 1; attempt <= this.config.maxRetries!; attempt++) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await fn();
       } catch (error) {
         lastError = error as Error;
-        if (attempt < this.config.maxRetries!) {
+        if (attempt < maxRetries) {
           const delay = Math.pow(2, attempt) * 1000;
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
@@ -159,7 +161,7 @@ export class OpenRouterService {
       maxTokens?: number;
       responseFormat?: {
         type: string;
-        json_schema?: any;
+        json_schema?: Record<string, unknown>;
       };
     }
   ): Promise<ChatResponse> {
