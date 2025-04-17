@@ -1,5 +1,5 @@
-import axios, { AxiosError } from "axios";
 import type { AxiosInstance } from "axios";
+import axios from "axios";
 import { z } from "zod";
 
 // Types
@@ -7,8 +7,6 @@ export interface OpenRouterConfig {
   apiKey: string;
   baseUrl?: string;
   defaultModel?: string;
-  maxRetries?: number;
-  timeout?: number;
 }
 
 export interface ChatMessage {
@@ -18,26 +16,44 @@ export interface ChatMessage {
 
 export interface ChatResponse {
   message: string;
-  confidence: number;
+  usage: UsageStats;
+  rawResponse?: {
+    id: string;
+    model: string;
+    created: number;
+    object: string;
+    choices: {
+      index: number;
+      message: {
+        role: string;
+        content: string;
+      };
+      finish_reason: string | null;
+    }[];
+    usage: UsageStats;
+  };
 }
 
 export interface UsageStats {
-  totalRequests: number;
-  totalTokens: number;
-  lastRequestTime: Date;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
 }
 
 export enum OpenRouterErrorType {
   API_ERROR = "API_ERROR",
-  VALIDATION_ERROR = "VALIDATION_ERROR",
   NETWORK_ERROR = "NETWORK_ERROR",
+  VALIDATION_ERROR = "VALIDATION_ERROR",
   RATE_LIMIT_ERROR = "RATE_LIMIT_ERROR",
+  INSUFFICIENT_CREDITS = "INSUFFICIENT_CREDITS",
+  INVALID_API_KEY = "INVALID_API_KEY",
+  MODEL_NOT_FOUND = "MODEL_NOT_FOUND",
 }
 
 export class OpenRouterError extends Error {
   constructor(
-    public type: OpenRouterErrorType,
     message: string,
+    public type: OpenRouterErrorType,
     public details?: unknown
   ) {
     super(message);
@@ -48,183 +64,257 @@ export class OpenRouterError extends Error {
 // Validation schemas
 const chatMessageSchema = z.object({
   role: z.enum(["system", "user", "assistant"]),
-  content: z.string().min(1),
+  content: z.string(),
 });
 
 const chatResponseSchema = z.object({
-  message: z.string(),
-  confidence: z.number().min(0).max(1),
+  id: z.string(),
+  model: z.string(),
+  created: z.number(),
+  object: z.string(),
+  choices: z.array(
+    z.object({
+      index: z.number(),
+      message: z.object({
+        role: z.string(),
+        content: z.string(),
+      }),
+      finish_reason: z.string().nullable(),
+    })
+  ),
+  usage: z.object({
+    prompt_tokens: z.number(),
+    completion_tokens: z.number(),
+    total_tokens: z.number(),
+  }),
 });
 
 export class OpenRouterService {
-  private readonly client: AxiosInstance;
-  private readonly config: OpenRouterConfig;
+  private client: AxiosInstance;
   private isConnected = false;
-  private lastError?: OpenRouterError;
-  private usageStats: UsageStats = {
-    totalRequests: 0,
-    totalTokens: 0,
-    lastRequestTime: new Date(),
-  };
 
-  constructor(config: OpenRouterConfig) {
-    this.config = {
-      baseUrl: config.baseUrl || "https://openrouter.ai/api/v1",
-      defaultModel: config.defaultModel || "anthropic/claude-3-opus",
-      maxRetries: config.maxRetries || 3,
-      timeout: config.timeout || 30000,
-      apiKey: config.apiKey,
-    };
-
+  constructor(private config: OpenRouterConfig) {
     this.client = axios.create({
-      baseURL: this.config.baseUrl,
-      timeout: this.config.timeout,
+      baseURL: config.baseUrl || "https://openrouter.ai/api/v1",
       headers: {
-        Authorization: `Bearer ${this.config.apiKey}`,
+        Authorization: `Bearer ${config.apiKey}`,
+        "HTTP-Referer": import.meta.env.SITE_URL || "http://localhost:4321",
+        "X-Title": "10xdevs",
         "Content-Type": "application/json",
       },
     });
-
-    this.initializeConnection();
   }
 
-  private async initializeConnection(): Promise<void> {
+  async initializeConnection(): Promise<void> {
     try {
       await this.client.get("/health");
       this.isConnected = true;
     } catch (error) {
       this.isConnected = false;
-      this.lastError = new OpenRouterError(
-        OpenRouterErrorType.API_ERROR,
-        "Failed to initialize connection to OpenRouter API",
-        error
-      );
+      throw new OpenRouterError("Failed to connect to OpenRouter API", OpenRouterErrorType.API_ERROR, error);
     }
   }
 
-  private async validateResponse(response: unknown): Promise<boolean> {
+  private validateResponse(response: unknown): ChatResponse {
     try {
-      chatResponseSchema.parse(response);
-      return true;
-    } catch (error) {
-      this.lastError = new OpenRouterError(
-        OpenRouterErrorType.VALIDATION_ERROR,
-        "Invalid response format from OpenRouter API",
-        error
-      );
-      return false;
-    }
-  }
+      console.log("Raw response from OpenRouter:", response);
 
-  private async handleError(error: unknown): Promise<void> {
-    if (error instanceof AxiosError) {
-      if (error.response?.status === 429) {
-        this.lastError = new OpenRouterError(
-          OpenRouterErrorType.RATE_LIMIT_ERROR,
-          "Rate limit exceeded",
-          error.response.data
-        );
-      } else if (error.code === "ECONNABORTED") {
-        this.lastError = new OpenRouterError(OpenRouterErrorType.NETWORK_ERROR, "Request timeout", error);
-      } else {
-        this.lastError = new OpenRouterError(OpenRouterErrorType.API_ERROR, "API request failed", error);
-      }
-    } else {
-      this.lastError = new OpenRouterError(OpenRouterErrorType.API_ERROR, "Unknown error occurred", error);
-    }
-  }
-
-  private async retryRequest<T>(fn: () => Promise<T>): Promise<T> {
-    let lastError: Error | undefined;
-    const maxRetries = this.config.maxRetries ?? 3;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        return await fn();
-      } catch (error) {
-        lastError = error as Error;
-        if (attempt < maxRetries) {
-          const delay = Math.pow(2, attempt) * 1000;
-          await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-      }
-    }
-
-    throw lastError;
-  }
-
-  public async sendMessage(
-    messages: ChatMessage[],
-    options?: {
-      model?: string;
-      temperature?: number;
-      maxTokens?: number;
-      responseFormat?: {
-        type: string;
-        json_schema?: Record<string, unknown>;
-      };
-    }
-  ): Promise<ChatResponse> {
-    if (!this.isConnected) {
-      throw new OpenRouterError(OpenRouterErrorType.API_ERROR, "Service is not connected to OpenRouter API");
-    }
-
-    try {
-      // Validate messages
-      for (const message of messages) {
-        if (!(await this.validateMessage(message))) {
-          throw this.lastError;
-        }
-      }
-
-      const response = await this.retryRequest(async () => {
-        const result = await this.client.post("/chat/completions", {
-          model: options?.model || this.config.defaultModel,
-          messages,
-          temperature: options?.temperature || 0.7,
-          max_tokens: options?.maxTokens || 1000,
-          response_format: options?.responseFormat,
+      if (!response || typeof response !== "object") {
+        throw new OpenRouterError("Invalid response format from OpenRouter API", OpenRouterErrorType.VALIDATION_ERROR, {
+          error: "Response is not an object",
+          response,
+          status: 400,
         });
-
-        return result.data;
-      });
-
-      if (!(await this.validateResponse(response))) {
-        throw this.lastError;
       }
 
-      this.usageStats.totalRequests++;
-      this.usageStats.lastRequestTime = new Date();
+      // First check if it's an error response
+      if ("error" in response) {
+        const errorResponse = response as { error: { message?: string } };
+        throw new OpenRouterError(
+          errorResponse.error?.message || "OpenRouter API error",
+          OpenRouterErrorType.API_ERROR,
+          response
+        );
+      }
+
+      const validated = chatResponseSchema.parse(response);
+
+      if (!validated.choices?.[0]?.message?.content) {
+        throw new OpenRouterError(
+          "Invalid response format from OpenRouter API: missing message content",
+          OpenRouterErrorType.VALIDATION_ERROR,
+          {
+            error: "Missing message content",
+            response: validated,
+            status: 400,
+          }
+        );
+      }
+
+      // Extract the message content, handling both JSON and plain text responses
+      let messageContent = validated.choices[0].message.content;
+
+      // If the content starts with "Here is a JSON array", try to parse it as JSON
+      if (messageContent.startsWith("Here is a JSON array")) {
+        try {
+          // Extract the JSON part from the response
+          const jsonMatch = messageContent.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            messageContent = jsonMatch[0];
+          }
+        } catch (e) {
+          console.warn("Failed to parse JSON from response:", e);
+        }
+      }
 
       return {
-        message: response.message,
-        confidence: response.confidence,
+        message: messageContent,
+        usage: validated.usage,
+        rawResponse: validated,
       };
     } catch (error) {
-      await this.handleError(error);
-      throw this.lastError;
+      console.error("Validation error:", error);
+      console.error("Response:", response);
+
+      if (error instanceof z.ZodError) {
+        throw new OpenRouterError("Invalid response format from OpenRouter API", OpenRouterErrorType.VALIDATION_ERROR, {
+          error: error.errors,
+          response,
+          status: 400,
+        });
+      }
+
+      throw new OpenRouterError("Invalid response format from OpenRouter API", OpenRouterErrorType.VALIDATION_ERROR, {
+        error,
+        response,
+        status: 400,
+      });
     }
   }
 
-  public async validateMessage(message: ChatMessage): Promise<boolean> {
+  private async handleError(error: unknown): Promise<never> {
+    console.log("OpenRouter handleError:", error);
+
+    if (axios.isAxiosError(error)) {
+      console.log("Axios error details:", {
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers,
+      });
+
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+
+        console.log("OpenRouter error response:", {
+          status,
+          data,
+        });
+
+        // Return the error response directly with proper status code
+        throw new OpenRouterError(data.error?.message || "OpenRouter API error", OpenRouterErrorType.API_ERROR, {
+          ...data,
+          status,
+        });
+      }
+
+      if (error.request) {
+        console.log("Network error details:", error.request);
+        throw new OpenRouterError(
+          "Network error while communicating with OpenRouter API",
+          OpenRouterErrorType.NETWORK_ERROR,
+          {
+            error,
+            status: 500,
+          }
+        );
+      }
+      throw new OpenRouterError("Error setting up request to OpenRouter API", OpenRouterErrorType.API_ERROR, {
+        error,
+        status: 500,
+      });
+    }
+
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      console.log("Zod validation error:", error.errors);
+      throw new OpenRouterError("Invalid response format from OpenRouter API", OpenRouterErrorType.VALIDATION_ERROR, {
+        error,
+        status: 400,
+      });
+    }
+
+    throw new OpenRouterError(
+      "Unexpected error while communicating with OpenRouter API",
+      OpenRouterErrorType.API_ERROR,
+      {
+        error,
+        status: 500,
+      }
+    );
+  }
+
+  async sendMessage(
+    messages: ChatMessage[],
+    options: {
+      model?: string;
+      maxRetries?: number;
+      responseFormat?: {
+        type: "json_schema";
+        json_schema: {
+          name: string;
+          strict: boolean;
+          schema: Record<string, unknown>;
+        };
+      };
+    } = {}
+  ): Promise<ChatResponse> {
     try {
-      chatMessageSchema.parse(message);
-      return true;
+      // Validate messages
+      messages.forEach((message) => {
+        chatMessageSchema.parse(message);
+      });
+
+      const maxRetries = options.maxRetries ?? 3;
+      let lastError: unknown;
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const response = await this.client.post("/chat/completions", {
+            model: options.model || this.config.defaultModel || "openai/gpt-4o-mini",
+            messages,
+            response_format: options.responseFormat
+              ? {
+                  type: "json_schema",
+                  json_schema: {
+                    name: "flashcards",
+                    strict: true,
+                    schema: options.responseFormat.json_schema.schema,
+                  },
+                }
+              : undefined,
+          });
+
+          return this.validateResponse(response.data);
+        } catch (error) {
+          lastError = error;
+          if (attempt < maxRetries - 1) {
+            await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+          }
+        }
+      }
+
+      throw lastError;
     } catch (error) {
-      this.lastError = new OpenRouterError(OpenRouterErrorType.VALIDATION_ERROR, "Invalid message format", error);
-      return false;
+      return this.handleError(error);
     }
   }
 
-  public getUsageStats(): UsageStats {
-    return { ...this.usageStats };
+  getUsageStats(): UsageStats | null {
+    return null; // Implement if needed
   }
 
-  public getLastError(): OpenRouterError | undefined {
-    return this.lastError;
-  }
-
-  public getConnectionStatus(): boolean {
+  isConnectedToAPI(): boolean {
     return this.isConnected;
   }
 }

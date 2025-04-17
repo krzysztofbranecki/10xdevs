@@ -15,29 +15,34 @@ Format your response as a JSON array of objects with 'front' and 'back' properti
 export class FlashcardGenerationError extends Error {
   constructor(
     message: string,
-    public type: 'API_ERROR' | 'VALIDATION_ERROR' | 'PARSING_ERROR' | 'NETWORK_ERROR',
-    public details?: unknown
+    public type:
+      | "API_ERROR"
+      | "VALIDATION_ERROR"
+      | "PARSING_ERROR"
+      | "NETWORK_ERROR"
+      | "INSUFFICIENT_CREDITS"
+      | "INVALID_API_KEY"
+      | "MODEL_NOT_FOUND",
+    public details?: unknown,
+    public statusCode = 500
   ) {
     super(message);
-    this.name = 'FlashcardGenerationError';
+    this.name = "FlashcardGenerationError";
   }
 }
 
 export async function generateFlashcards(
   command: GenerateFlashcardsCommand,
   supabase: any
-): Promise<FlashcardProposalDto[]> {
+): Promise<{ proposals: FlashcardProposalDto[]; rawResponse: any }> {
   try {
     if (!import.meta.env.OPENROUTER_API_KEY) {
-      throw new FlashcardGenerationError(
-        'OpenRouter API key is not configured',
-        'API_ERROR'
-      );
+      throw new FlashcardGenerationError("OpenRouter API key is not configured", "API_ERROR", undefined, 500);
     }
 
     const openRouter = new OpenRouterService({
       apiKey: import.meta.env.OPENROUTER_API_KEY,
-      defaultModel: command.additional_options?.model || "anthropic/claude-3-opus",
+      defaultModel: command.additional_options?.model || "openai/gpt-4o-mini",
     });
 
     const messages = [
@@ -57,58 +62,89 @@ export async function generateFlashcards(
         responseFormat: {
           type: "json_schema",
           json_schema: {
-            type: "array",
-            items: {
+            name: "flashcards",
+            strict: true,
+            schema: {
               type: "object",
               properties: {
-                front: { type: "string" },
-                back: { type: "string" },
+                flashcards: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      front: { type: "string" },
+                      back: { type: "string" },
+                    },
+                    required: ["front", "back"],
+                    additionalProperties: false
+                  },
+                },
               },
-              required: ["front", "back"],
+              required: ["flashcards"],
+              additionalProperties: false
             },
           },
         },
       });
     } catch (error) {
       if (error instanceof OpenRouterError) {
-        switch (error.type) {
-          case OpenRouterErrorType.API_ERROR:
-            throw new FlashcardGenerationError(
-              'Failed to communicate with OpenRouter API',
-              'API_ERROR',
-              error.details
-            );
-          case OpenRouterErrorType.NETWORK_ERROR:
-            throw new FlashcardGenerationError(
-              'Network error while communicating with OpenRouter API',
-              'NETWORK_ERROR',
-              error.details
-            );
-          case OpenRouterErrorType.RATE_LIMIT_ERROR:
-            throw new FlashcardGenerationError(
-              'Rate limit exceeded for OpenRouter API',
-              'API_ERROR',
-              error.details
-            );
-          default:
-            throw new FlashcardGenerationError(
-              'Unknown error from OpenRouter API',
-              'API_ERROR',
-              error.details
-            );
+        console.log("OpenRouter error details:", {
+          type: error.type,
+          message: error.message,
+          details: error.details,
+        });
+
+        // Use the status code from the error details
+        const statusCode = error.details?.status || 500;
+
+        // For validation errors, use status code 400
+        if (error.type === OpenRouterErrorType.VALIDATION_ERROR) {
+          throw new FlashcardGenerationError(error.message, "VALIDATION_ERROR", error.details, 400);
         }
+
+        throw new FlashcardGenerationError(error.message, error.type as any, error.details, statusCode);
       }
       throw error;
     }
 
     let proposals: FlashcardProposalDto[];
     try {
-      proposals = JSON.parse(response.message) as FlashcardProposalDto[];
+      // Extract the JSON array from the response message
+      const jsonMatch = response.message.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new FlashcardGenerationError(
+          "Invalid response format: no JSON object found",
+          "PARSING_ERROR",
+          {
+            response: response.message,
+            rawResponse: response.rawResponse,
+          },
+          400
+        );
+      }
+      const parsedResponse = JSON.parse(jsonMatch[0]);
+      if (!parsedResponse.flashcards || !Array.isArray(parsedResponse.flashcards)) {
+        throw new FlashcardGenerationError(
+          "Invalid response format: missing flashcards array",
+          "PARSING_ERROR",
+          {
+            response: parsedResponse,
+            rawResponse: response.rawResponse,
+          },
+          400
+        );
+      }
+      proposals = parsedResponse.flashcards as FlashcardProposalDto[];
     } catch (error) {
       throw new FlashcardGenerationError(
-        'Failed to parse response from OpenRouter API',
-        'PARSING_ERROR',
-        error
+        "Failed to parse response from OpenRouter API",
+        "PARSING_ERROR",
+        {
+          error,
+          response: response.message,
+          rawResponse: response.rawResponse,
+        },
+        400
       );
     }
 
@@ -116,22 +152,23 @@ export async function generateFlashcards(
     for (const proposal of proposals) {
       if (!proposal.front || !proposal.back) {
         throw new FlashcardGenerationError(
-          'Invalid flashcard proposal format: missing front or back',
-          'VALIDATION_ERROR',
-          proposal
+          "Invalid flashcard proposal format: missing front or back",
+          "VALIDATION_ERROR",
+          proposal,
+          400
         );
       }
     }
 
-    return proposals;
+    return {
+      proposals,
+      rawResponse: response.rawResponse,
+    };
   } catch (error) {
+    console.log("Unexpected error in generateFlashcards:", error);
     if (error instanceof FlashcardGenerationError) {
       throw error;
     }
-    throw new FlashcardGenerationError(
-      'Unexpected error during flashcard generation',
-      'API_ERROR',
-      error
-    );
+    throw new FlashcardGenerationError("Unexpected error during flashcard generation", "API_ERROR", error, 500);
   }
-} 
+}

@@ -1,0 +1,148 @@
+### Test OpenRouter API directly
+@baseUrl = https://openrouter.ai/api/v1
+@apiKey = {{$processEnv OPENROUTER_API_KEY}}
+
+### Get available models
+GET {{baseUrl}}/models
+Authorization: Bearer {{apiKey}}
+HTTP-Referer: http://localhost:4321
+X-Title: 10xdevs
+
+### Test chat completion
+POST {{baseUrl}}/chat/completions
+Authorization: Bearer {{apiKey}}
+HTTP-Referer: http://localhost:4321
+X-Title: 10xdevs
+Content-Type: application/json
+
+{
+  "model": "anthropic/claude-3-opus",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant that generates educational flashcards. Given a text, you should create flashcards that help users learn and remember the key concepts. Each flashcard should have a clear, concise question on the front and a detailed, accurate answer on the back. Format your response as a JSON array of objects with 'front' and 'back' properties."
+    },
+    {
+      "role": "user",
+      "content": "Please generate flashcards from the following text:\n\nJavaScript is a programming language that is one of the core technologies of the World Wide Web, alongside HTML and CSS. It enables interactive web pages and is an essential part of web applications."
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "flashcards",
+      "strict": true,
+      "schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "front": { "type": "string" },
+            "back": { "type": "string" }
+          },
+          "required": ["front", "back"]
+        }
+      }
+    }
+  }
+}
+
+### Test chat completion with different model
+POST {{baseUrl}}/chat/completions
+Authorization: Bearer {{apiKey}}
+HTTP-Referer: http://localhost:4321
+X-Title: 10xdevs
+Content-Type: application/json
+
+{
+  "model": "openai/gpt-4o-mini",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant that generates educational flashcards. Given a text, you should create flashcards that help users learn and remember the key concepts. Each flashcard should have a clear, concise question on the front and a detailed, accurate answer on the back. Format your response as a JSON array of objects with 'front' and 'back' properties."
+    },
+    {
+      "role": "user",
+      "content": "Please generate flashcards from the following text:\n\nJavaScript is a programming language that is one of the core technologies of the World Wide Web, alongside HTML and CSS. It enables interactive web pages and is an essential part of web applications."
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "flashcards",
+      "strict": true,
+      "schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "front": { "type": "string" },
+            "back": { "type": "string" }
+          },
+          "required": ["front", "back"]
+        }
+      }
+    }
+  }
+}
+
+### Test error handling - invalid API key
+POST {{baseUrl}}/chat/completions
+Authorization: Bearer invalid-key
+HTTP-Referer: http://localhost:4321
+X-Title: 10xdevs
+Content-Type: application/json
+
+{
+  "model": "anthropic/claude-3-opus",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Test message"
+    }
+  ]
+}
+
+### Test error handling - invalid model
+POST {{baseUrl}}/chat/completions
+Authorization: Bearer {{apiKey}}
+HTTP-Referer: http://localhost:4321
+X-Title: 10xdevs
+Content-Type: application/json
+
+{
+  "model": "invalid-model",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Test message"
+    }
+  ]
+}
+
+### Test error handling - invalid JSON schema
+POST {{baseUrl}}/chat/completions
+Authorization: Bearer {{apiKey}}
+HTTP-Referer: http://localhost:4321
+X-Title: 10xdevs
+Content-Type: application/json
+
+{
+  "model": "anthropic/claude-3-opus",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Test message"
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "flashcards",
+      "strict": true,
+      "schema": {
+        "type": "invalid-type"
+      }
+    }
+  }
+} 

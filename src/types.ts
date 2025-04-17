@@ -50,9 +50,28 @@ export type FlashcardProposalDto = {
 };
 
 // DTO for the result of AI flashcard generation.
-export type GenerateFlashcardsResultDto = {
+export interface GenerateFlashcardsResultDto {
   proposals: FlashcardProposalDto[];
-};
+  rawResponse?: {
+    id: string;
+    model: string;
+    created: number;
+    object: string;
+    choices: Array<{
+      index: number;
+      message: {
+        role: string;
+        content: string;
+      };
+      finish_reason: string | null;
+    }>;
+    usage: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
+  };
+}
 
 // Standard error response DTO.
 export type ErrorResponseDto = {
