@@ -137,6 +137,56 @@
   - *Success Codes*: 200 OK.
   - *Error Codes*: 400 Bad Request, 401 Unauthorized, 500 Internal Server Error (if AI generation fails).
 
+### 2.3 Auth Endpoints
+
+- **POST /api/auth/register**
+  - *Description*: Register a new user account. This endpoint leverages Supabase's built-in auth mechanism to handle user registration.
+  - *Request Body*:
+    ```json
+    {
+      "email": "user@example.com",
+      "password": "securePassword",
+      "additional_data": { "optional_field": "value" }
+    }
+    ```
+  - *Response*:
+    ```json
+    {
+      "user": {
+        "id": "uuid",
+        "email": "user@example.com",
+        "created_at": "timestamp"
+      },
+      "access_token": "jwt-access-token",
+      "refresh_token": "jwt-refresh-token"
+    }
+    ```
+  - *Success Codes*: 201 Created.
+  - *Error Codes*: 400 Bad Request, 409 Conflict.
+
+- **POST /api/auth/login**
+  - *Description*: Authenticate an existing user. This endpoint uses Supabase's built-in auth mechanism to validate user credentials.
+  - *Request Body*:
+    ```json
+    {
+      "email": "user@example.com",
+      "password": "securePassword"
+    }
+    ```
+  - *Response*:
+    ```json
+    {
+      "user": {
+        "id": "uuid",
+        "email": "user@example.com"
+      },
+      "access_token": "jwt-access-token",
+      "refresh_token": "jwt-refresh-token"
+    }
+    ```
+  - *Success Codes*: 200 OK.
+  - *Error Codes*: 400 Bad Request, 401 Unauthorized.
+
 ## 3. Authentication & Authorization
 
 - The API will use token-based authentication (e.g., JWT) issued on login and registration.
