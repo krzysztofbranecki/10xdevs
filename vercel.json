@@ -1,0 +1,7 @@
+{
+  "framework": "astro",
+  "buildCommand": "yarn build",
+  "devCommand": "yarn dev",
+  "installCommand": "yarn install",
+  "outputDirectory": "dist"
+} 
