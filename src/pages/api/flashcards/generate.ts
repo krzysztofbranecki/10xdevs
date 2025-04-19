@@ -34,7 +34,7 @@ export async function POST({ request, locals }: { request: Request; locals: any 
         JSON.stringify({
           error: "Invalid input data",
           error_code: 400,
-          details: result.error.errors,
+          details: JSON.stringify(result.error.errors),
         } as ErrorResponseDto),
         { status: 400 }
       );
@@ -88,7 +88,8 @@ export async function POST({ request, locals }: { request: Request; locals: any 
       rawResponse,
     };
     return new Response(JSON.stringify(response), { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    console.error(error);
     return new Response(
       JSON.stringify({
         error: "Internal Server Error",

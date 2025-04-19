@@ -10,17 +10,17 @@ import type { Database } from "./db/database.types";
 export type FlashcardDto = Database["public"]["Tables"]["flashcards"]["Row"];
 
 // Pagination DTO for paginated responses.
-export type PaginationDto = {
+export interface PaginationDto {
   page: number;
   per_page: number;
   total: number;
-};
+}
 
 // DTO for listing flashcards with pagination.
-export type FlashcardsListDto = {
+export interface FlashcardsListDto {
   flashcards: FlashcardDto[];
   pagination: PaginationDto;
-};
+}
 
 // Command model for creating a new flashcard.
 // Derived from flashcards Insert type by picking only required fields for creation.
@@ -30,24 +30,24 @@ export type CreateFlashcardCommand = Pick<
 >;
 
 // Command model for updating an existing flashcard's details.
-export type UpdateFlashcardCommand = {
+export interface UpdateFlashcardCommand {
   front: string;
   back: string;
-};
+}
 
 // Command model for generating flashcards using AI.
-export type GenerateFlashcardsCommand = {
+export interface GenerateFlashcardsCommand {
   input_text: string; // Expected to be between 1000 and 10000 characters.
   additional_options?: {
     model?: string;
   };
-};
+}
 
 // DTO for an individual flashcard proposal from AI generation.
-export type FlashcardProposalDto = {
+export interface FlashcardProposalDto {
   front: string;
   back: string;
-};
+}
 
 // DTO for the result of AI flashcard generation.
 export interface GenerateFlashcardsResultDto {
@@ -57,14 +57,14 @@ export interface GenerateFlashcardsResultDto {
     model: string;
     created: number;
     object: string;
-    choices: Array<{
+    choices: {
       index: number;
       message: {
         role: string;
         content: string;
       };
       finish_reason: string | null;
-    }>;
+    }[];
     usage: {
       prompt_tokens: number;
       completion_tokens: number;
@@ -74,8 +74,8 @@ export interface GenerateFlashcardsResultDto {
 }
 
 // Standard error response DTO.
-export type ErrorResponseDto = {
+export interface ErrorResponseDto {
   error: string;
   error_code: number;
   details?: string;
-}; 
+}

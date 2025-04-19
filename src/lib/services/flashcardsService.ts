@@ -1,5 +1,5 @@
 import type { GenerateFlashcardsCommand, FlashcardProposalDto } from "../../types";
-import { OpenRouterService, OpenRouterError, OpenRouterErrorType } from "./openrouter.service";
+import { OpenRouterService, OpenRouterError, OpenRouterErrorType, type ChatMessage } from "./openrouter.service";
 
 const SYSTEM_PROMPT = `You are a helpful assistant that generates educational flashcards. 
 Given a text, you should create flashcards that help users learn and remember the key concepts.
@@ -32,9 +32,8 @@ export class FlashcardGenerationError extends Error {
 }
 
 export async function generateFlashcards(
-  command: GenerateFlashcardsCommand,
-  supabase: any
-): Promise<{ proposals: FlashcardProposalDto[]; rawResponse: any }> {
+  command: GenerateFlashcardsCommand
+): Promise<{ proposals: FlashcardProposalDto[]; rawResponse: unknown }> {
   try {
     if (!import.meta.env.OPENROUTER_API_KEY) {
       throw new FlashcardGenerationError("OpenRouter API key is not configured", "API_ERROR", undefined, 500);
@@ -45,7 +44,7 @@ export async function generateFlashcards(
       defaultModel: command.additional_options?.model || "openai/gpt-4o-mini",
     });
 
-    const messages = [
+    const messages: ChatMessage[] = [
       {
         role: "system",
         content: SYSTEM_PROMPT,
@@ -76,12 +75,12 @@ export async function generateFlashcards(
                       back: { type: "string" },
                     },
                     required: ["front", "back"],
-                    additionalProperties: false
+                    additionalProperties: false,
                   },
                 },
               },
               required: ["flashcards"],
-              additionalProperties: false
+              additionalProperties: false,
             },
           },
         },
@@ -95,7 +94,7 @@ export async function generateFlashcards(
         });
 
         // Use the status code from the error details
-        const statusCode = error.details?.status || 500;
+        const statusCode = (error.details as { status?: number })?.status || 500;
 
         // For validation errors, use status code 400
         if (error.type === OpenRouterErrorType.VALIDATION_ERROR) {

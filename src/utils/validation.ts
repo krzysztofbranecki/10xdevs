@@ -12,4 +12,4 @@ export const validateInputText = (text: string): string | null => {
   }
 
   return null;
-}; 
+};
