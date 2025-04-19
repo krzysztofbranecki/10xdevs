@@ -3,9 +3,27 @@ import Layout from "../layouts/Layout.astro";
 import { GenerateFlashcardsView } from "@/components/generate/GenerateFlashcardsView";
 ---
 
-<Layout>
-  <main class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">Generowanie fiszek</h1>
-    <GenerateFlashcardsView client:load />
-  </main>
+<Layout title="Generowanie fiszek | Flashcards App">
+  <div
+    class="relative w-full mx-auto min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 p-4 sm:p-8 flex items-center justify-center"
+  >
+    <div
+      class="relative w-full max-w-4xl mx-auto backdrop-blur-xl bg-gradient-to-b from-white/10 to-white/5 rounded-2xl shadow-2xl p-8 text-white border border-white/10"
+    >
+      <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-8">
+          <h1
+            class="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 text-transparent bg-clip-text drop-shadow-lg"
+          >
+            Generowanie fiszek
+          </h1>
+          <p class="text-lg sm:text-xl text-blue-100/90 drop-shadow-md mt-3">Stwórz swoje fiszki za pomocą AI</p>
+        </div>
+
+        <div class="w-full backdrop-blur-lg bg-white/5 border border-white/20 rounded-lg overflow-hidden p-6">
+          <GenerateFlashcardsView client:load />
+        </div>
+      </div>
+    </div>
+  </div>
 </Layout>
