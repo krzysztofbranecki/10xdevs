@@ -1,0 +1,113 @@
+name: Deploy to Vercel Production
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+        with:
+          node-version-file: '.nvmrc'
+          cache-type: 'yarn'
+
+      - name: Run ESLint
+        run: yarn lint
+
+  unit-test:
+    name: Unit Tests
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+        with:
+          node-version-file: '.nvmrc'
+          cache-type: 'yarn'
+
+      - name: Run unit tests
+        run: yarn test
+
+      - name: Upload coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage
+          path: coverage/
+          retention-days: 5
+
+  deploy:
+    name: Deploy to Vercel
+    needs: [lint, unit-test]
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      OPENROUTER_API_URL: ${{ secrets.OPENROUTER_API_URL }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+        with:
+          node-version-file: '.nvmrc'
+          cache-type: 'yarn'
+
+      - name: Build project
+        run: yarn build
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ env.VERCEL_TOKEN }}
+          vercel-org-id: ${{ env.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ env.VERCEL_PROJECT_ID }}
+          github-comment: false
+          vercel-args: '--prod'
+          working-directory: ./
+
+  deployment-notification:
+    name: Deployment Notification
+    if: ${{ always() }}
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deployment status
+        id: check-status
+        if: ${{ needs.deploy.result == 'success' }}
+        run: echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Create deployment comment
+        if: ${{ steps.check-status.outputs.status == 'success' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const lastCommit = context.sha.substring(0, 7);
+            
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `✅ Deployment to production completed successfully!
+              
+              - Commit: ${lastCommit}
+              - Environment: Production
+              
+              The changes are now live.`
+            }) 

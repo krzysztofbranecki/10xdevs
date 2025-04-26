@@ -1,0 +1,32 @@
+name: 'Setup Node.js'
+description: 'Sets up Node.js environment with caching'
+inputs:
+  node-version-file:
+    description: 'Path to the .nvmrc file'
+    required: false
+    default: '.nvmrc'
+  cache-type:
+    description: 'Package manager to use for caching'
+    required: false
+    default: 'yarn'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ inputs.node-version-file }}
+        cache: ${{ inputs.cache-type }}
+    
+    - name: Install dependencies
+      shell: bash
+      run: |
+        if [ "${{ inputs.cache-type }}" = "yarn" ]; then
+          yarn install --frozen-lockfile
+        elif [ "${{ inputs.cache-type }}" = "npm" ]; then
+          npm ci
+        else
+          echo "Unsupported cache type: ${{ inputs.cache-type }}"
+          exit 1
+        fi 

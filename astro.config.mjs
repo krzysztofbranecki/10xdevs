@@ -12,7 +12,4 @@ export default defineConfig({
   adapter: vercel(),
   integrations: [react(), sitemap()],
   server: { port: 3000 },
-  vite: {
-    plugins: [tailwindcss()],
-  },
 });
