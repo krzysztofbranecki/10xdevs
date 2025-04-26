@@ -84,7 +84,7 @@ describe("FlashcardProposalForm", () => {
   });
 
   it("prevents form submission when fields are empty", async () => {
-    const user = userEvent.setup();
+    userEvent.setup();
 
     render(<FlashcardProposalForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
