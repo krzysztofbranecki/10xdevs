@@ -26,4 +26,4 @@ Testing - Rozwiązania do testów automatycznych:
 CI/CD i Hosting:
 
 - Github Actions do tworzenia pipeline'ów CI/CD
-- Verce do hostowania aplikacji 
+- Verce do hostowania aplikacji

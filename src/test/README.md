@@ -45,12 +45,12 @@ When testing components that interact with Supabase:
 Example:
 
 ```tsx
-import { mockSupabaseClient } from '../test/mocks/supabase';
+import { mockSupabaseClient } from "../test/mocks/supabase";
 
 // Customize the mock for your test
 mockSupabaseClient.auth.getUser = vi.fn().mockResolvedValue({
-  data: { user: { id: 'test-id', email: 'test@example.com' } },
-  error: null
+  data: { user: { id: "test-id", email: "test@example.com" } },
+  error: null,
 });
 
 // Render your component with the mock client
@@ -106,18 +106,18 @@ Example:
 
 ```typescript
 // Save authentication state
-test('authenticate user', async ({ page, context }) => {
+test("authenticate user", async ({ page, context }) => {
   const authPage = new AuthPage(page);
   await authPage.goto();
-  await authPage.signIn('test@example.com', 'password');
-  
+  await authPage.signIn("test@example.com", "password");
+
   // Save authenticated state to reuse in other tests
-  await context.storageState({ path: './e2e/.auth/user.json' });
+  await context.storageState({ path: "./e2e/.auth/user.json" });
 });
 
 // Use saved authentication in other tests
-test.use({ storageState: './e2e/.auth/user.json' });
-test('access authenticated page', async ({ page }) => {
+test.use({ storageState: "./e2e/.auth/user.json" });
+test("access authenticated page", async ({ page }) => {
   // Test starts with user already authenticated
 });
-``` 
+```

@@ -1,137 +1,103 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { FlashcardProposalForm } from './FlashcardProposalForm';
-import { mockFlashcardProposal } from './__mocks__/mockFlashcardProps';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { FlashcardProposalForm } from "./FlashcardProposalForm";
+import { mockFlashcardProposal } from "./__mocks__/mockFlashcardProps";
 
-describe('FlashcardProposalForm', () => {
+describe("FlashcardProposalForm", () => {
   const mockOnSubmit = vi.fn();
   const mockOnCancel = vi.fn();
-  
+
   beforeEach(() => {
     vi.resetAllMocks();
   });
-  
-  it('renders empty form when no initial data provided', () => {
-    render(
-      <FlashcardProposalForm 
-        onSubmit={mockOnSubmit} 
-        onCancel={mockOnCancel} 
-      />
-    );
-    
-    const frontTextarea = screen.getByLabelText('Przód');
-    const backTextarea = screen.getByLabelText('Tył');
-    
-    expect(frontTextarea).toHaveValue('');
-    expect(backTextarea).toHaveValue('');
-    expect(screen.getByRole('button', { name: 'Zapisz' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Anuluj' })).toBeInTheDocument();
+
+  it("renders empty form when no initial data provided", () => {
+    render(<FlashcardProposalForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
+
+    const frontTextarea = screen.getByLabelText("Przód");
+    const backTextarea = screen.getByLabelText("Tył");
+
+    expect(frontTextarea).toHaveValue("");
+    expect(backTextarea).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Zapisz" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Anuluj" })).toBeInTheDocument();
   });
-  
-  it('renders form with initial data when provided', () => {
+
+  it("renders form with initial data when provided", () => {
     render(
-      <FlashcardProposalForm 
-        initialData={mockFlashcardProposal}
-        onSubmit={mockOnSubmit} 
-        onCancel={mockOnCancel} 
-      />
+      <FlashcardProposalForm initialData={mockFlashcardProposal} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />
     );
-    
-    const frontTextarea = screen.getByLabelText('Przód');
-    const backTextarea = screen.getByLabelText('Tył');
-    
+
+    const frontTextarea = screen.getByLabelText("Przód");
+    const backTextarea = screen.getByLabelText("Tył");
+
     expect(frontTextarea).toHaveValue(mockFlashcardProposal.front);
     expect(backTextarea).toHaveValue(mockFlashcardProposal.back);
   });
-  
-  it('calls onSubmit with form data when form is submitted', async () => {
+
+  it("calls onSubmit with form data when form is submitted", async () => {
     const user = userEvent.setup();
-    
-    render(
-      <FlashcardProposalForm 
-        onSubmit={mockOnSubmit} 
-        onCancel={mockOnCancel} 
-      />
-    );
-    
-    const frontTextarea = screen.getByLabelText('Przód');
-    const backTextarea = screen.getByLabelText('Tył');
-    const submitButton = screen.getByRole('button', { name: 'Zapisz' });
-    
-    await user.type(frontTextarea, 'New question');
-    await user.type(backTextarea, 'New answer');
+
+    render(<FlashcardProposalForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
+
+    const frontTextarea = screen.getByLabelText("Przód");
+    const backTextarea = screen.getByLabelText("Tył");
+    const submitButton = screen.getByRole("button", { name: "Zapisz" });
+
+    await user.type(frontTextarea, "New question");
+    await user.type(backTextarea, "New answer");
     await user.click(submitButton);
-    
+
     expect(mockOnSubmit).toHaveBeenCalledTimes(1);
     expect(mockOnSubmit).toHaveBeenCalledWith({
-      front: 'New question',
-      back: 'New answer'
+      front: "New question",
+      back: "New answer",
     });
   });
-  
-  it('calls onCancel when cancel button is clicked', async () => {
+
+  it("calls onCancel when cancel button is clicked", async () => {
     const user = userEvent.setup();
-    
-    render(
-      <FlashcardProposalForm 
-        onSubmit={mockOnSubmit} 
-        onCancel={mockOnCancel} 
-      />
-    );
-    
-    const cancelButton = screen.getByRole('button', { name: 'Anuluj' });
+
+    render(<FlashcardProposalForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
+
+    const cancelButton = screen.getByRole("button", { name: "Anuluj" });
     await user.click(cancelButton);
-    
+
     expect(mockOnCancel).toHaveBeenCalledTimes(1);
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });
-  
-  it('updates form data when user types in textareas', async () => {
+
+  it("updates form data when user types in textareas", async () => {
     const user = userEvent.setup();
-    
-    render(
-      <FlashcardProposalForm 
-        onSubmit={mockOnSubmit} 
-        onCancel={mockOnCancel} 
-      />
-    );
-    
-    const frontTextarea = screen.getByLabelText('Przód');
-    const backTextarea = screen.getByLabelText('Tył');
-    
-    await user.type(frontTextarea, 'Test typing front');
-    await user.type(backTextarea, 'Test typing back');
-    
-    expect(frontTextarea).toHaveValue('Test typing front');
-    expect(backTextarea).toHaveValue('Test typing back');
+
+    render(<FlashcardProposalForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
+
+    const frontTextarea = screen.getByLabelText("Przód");
+    const backTextarea = screen.getByLabelText("Tył");
+
+    await user.type(frontTextarea, "Test typing front");
+    await user.type(backTextarea, "Test typing back");
+
+    expect(frontTextarea).toHaveValue("Test typing front");
+    expect(backTextarea).toHaveValue("Test typing back");
   });
-  
-  it('prevents form submission when fields are empty', async () => {
+
+  it("prevents form submission when fields are empty", async () => {
     const user = userEvent.setup();
-    
-    render(
-      <FlashcardProposalForm
-        onSubmit={mockOnSubmit}
-        onCancel={mockOnCancel}
-      />
-    );
-    
+
+    render(<FlashcardProposalForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
+
     // Both fields should have the required attribute
-    const frontTextarea = screen.getByLabelText('Przód');
-    const backTextarea = screen.getByLabelText('Tył');
-    expect(frontTextarea).toHaveAttribute('required');
-    expect(backTextarea).toHaveAttribute('required');
+    const frontTextarea = screen.getByLabelText("Przód");
+    const backTextarea = screen.getByLabelText("Tył");
+    expect(frontTextarea).toHaveAttribute("required");
+    expect(backTextarea).toHaveAttribute("required");
   });
-  
-  it('matches snapshot', () => {
-    const { container } = render(
-      <FlashcardProposalForm 
-        onSubmit={mockOnSubmit} 
-        onCancel={mockOnCancel} 
-      />
-    );
-    
+
+  it("matches snapshot", () => {
+    const { container } = render(<FlashcardProposalForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
+
     expect(container.firstChild).toMatchInlineSnapshot(`
       <form
         class="space-y-4"
@@ -183,4 +149,4 @@ describe('FlashcardProposalForm', () => {
       </form>
     `);
   });
-}); 
+});
