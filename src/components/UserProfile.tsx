@@ -8,8 +8,23 @@ interface User {
   name?: string;
 }
 
+// Minimal user type for testing flexibility
+interface MinimalUser {
+  id: string;
+  email?: string;
+  name?: string;
+}
+
+// Update interface to be more flexible for testing
 interface UserProfileProps {
-  supabaseClient: SupabaseClient;
+  supabaseClient:
+    | SupabaseClient
+    | {
+        auth: {
+          getUser: () => Promise<{ data: { user: MinimalUser | null }; error: { message: string } | null }>;
+          signOut: () => Promise<{ error: { message: string } | null }>;
+        };
+      };
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({ supabaseClient }) => {
@@ -32,6 +47,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ supabaseClient }) => {
           setUser({
             id: data.user.id,
             email: data.user.email,
+            name: data.user.name,
           });
         }
       } catch (err) {
