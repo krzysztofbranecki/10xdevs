@@ -1,4 +1,5 @@
-import { Page, Locator, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import type { Page, Locator } from "@playwright/test";
 import { BasePage } from "./page-object";
 
 export class AuthPage extends BasePage {
@@ -11,8 +12,8 @@ export class AuthPage extends BasePage {
   constructor(page: Page) {
     super(page);
     this.emailInput = page.getByLabel("Email");
-    this.passwordInput = page.getByLabel("Password");
-    this.signInButton = page.getByRole("button", { name: /sign in/i });
+    this.passwordInput = page.getByLabel("Hasło");
+    this.signInButton = page.getByTestId("login-button");
     this.signUpButton = page.getByRole("button", { name: /sign up/i });
     this.errorMessage = page.locator('[data-test="auth-error"]');
   }
@@ -34,7 +35,7 @@ export class AuthPage extends BasePage {
     await this.signUpButton.click();
   }
 
-  async expectErrorMessage(message: string) {
+  async expectErrorMessage(message: string | RegExp) {
     await expect(this.errorMessage).toContainText(message);
   }
 }

@@ -4,6 +4,12 @@ import PageWrapper from "../common/PageWrapper.astro";
 
 <PageWrapper title="Logowanie" description="Zaloguj się do swojego konta">
   <form class="space-y-6">
+    <div
+      data-test="auth-error"
+      class="hidden text-red-500 text-sm font-medium mb-4 p-3 bg-red-100/10 border border-red-500/20 rounded"
+    >
+    </div>
+
     <div class="space-y-2">
       <label for="email" class="block text-sm font-medium text-blue-100"> Email </label>
       <div class="relative group">
@@ -42,6 +48,7 @@ import PageWrapper from "../common/PageWrapper.astro";
 
     <button
       type="submit"
+      data-testid="login-button"
       class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-lg rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-blue-500/20 hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
     >
       Zaloguj się
