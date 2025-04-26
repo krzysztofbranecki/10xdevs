@@ -12,17 +12,19 @@ Each flashcard should have:
 
 Format your response as a JSON array of objects with 'front' and 'back' properties.`;
 
+export type FlashcardGenerationErrorType =
+  | "API_ERROR"
+  | "VALIDATION_ERROR"
+  | "PARSING_ERROR"
+  | "NETWORK_ERROR"
+  | "INSUFFICIENT_CREDITS"
+  | "INVALID_API_KEY"
+  | "MODEL_NOT_FOUND";
+
 export class FlashcardGenerationError extends Error {
   constructor(
     message: string,
-    public type:
-      | "API_ERROR"
-      | "VALIDATION_ERROR"
-      | "PARSING_ERROR"
-      | "NETWORK_ERROR"
-      | "INSUFFICIENT_CREDITS"
-      | "INVALID_API_KEY"
-      | "MODEL_NOT_FOUND",
+    public type: FlashcardGenerationErrorType,
     public details?: unknown,
     public statusCode = 500
   ) {
@@ -87,12 +89,6 @@ export async function generateFlashcards(
       });
     } catch (error) {
       if (error instanceof OpenRouterError) {
-        console.log("OpenRouter error details:", {
-          type: error.type,
-          message: error.message,
-          details: error.details,
-        });
-
         // Use the status code from the error details
         const statusCode = (error.details as { status?: number })?.status || 500;
 
@@ -101,7 +97,12 @@ export async function generateFlashcards(
           throw new FlashcardGenerationError(error.message, "VALIDATION_ERROR", error.details, 400);
         }
 
-        throw new FlashcardGenerationError(error.message, error.type as any, error.details, statusCode);
+        throw new FlashcardGenerationError(
+          error.message,
+          error.type as FlashcardGenerationErrorType,
+          error.details,
+          statusCode
+        );
       }
       throw error;
     }
@@ -164,7 +165,6 @@ export async function generateFlashcards(
       rawResponse: response.rawResponse,
     };
   } catch (error) {
-    console.log("Unexpected error in generateFlashcards:", error);
     if (error instanceof FlashcardGenerationError) {
       throw error;
     }

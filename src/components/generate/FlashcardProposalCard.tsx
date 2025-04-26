@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,15 +12,11 @@ interface FlashcardProposalCardProps {
   onDecline: (index: number) => void;
 }
 
-export function FlashcardProposalCard({
-  proposal,
-  index,
-  onEdit,
-  onAccept,
-  onDecline,
-}: FlashcardProposalCardProps) {
+export function FlashcardProposalCard({ proposal, index, onEdit, onAccept, onDecline }: FlashcardProposalCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProposal, setEditedProposal] = useState(proposal);
+  const frontId = useId();
+  const backId = useId();
 
   const handleSave = () => {
     onEdit(index, editedProposal);
@@ -37,23 +33,25 @@ export function FlashcardProposalCard({
       <Card>
         <CardContent className="pt-6 space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Przód fiszki</label>
+            <label htmlFor={frontId} className="text-sm font-medium">
+              Przód fiszki
+            </label>
             <Textarea
+              id={frontId}
               value={editedProposal.front}
-              onChange={(e) =>
-                setEditedProposal({ ...editedProposal, front: e.target.value })
-              }
+              onChange={(e) => setEditedProposal({ ...editedProposal, front: e.target.value })}
               placeholder="Przód fiszki..."
               className="min-h-[100px]"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Tył fiszki</label>
+            <label htmlFor={backId} className="text-sm font-medium">
+              Tył fiszki
+            </label>
             <Textarea
+              id={backId}
               value={editedProposal.back}
-              onChange={(e) =>
-                setEditedProposal({ ...editedProposal, back: e.target.value })
-              }
+              onChange={(e) => setEditedProposal({ ...editedProposal, back: e.target.value })}
               placeholder="Tył fiszki..."
               className="min-h-[100px]"
             />
@@ -92,4 +90,4 @@ export function FlashcardProposalCard({
       </CardFooter>
     </Card>
   );
-} 
+}

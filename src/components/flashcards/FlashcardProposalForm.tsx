@@ -1,5 +1,5 @@
-import { FlashcardProposalDto } from '@/types/flashcard';
-import { useState } from 'react';
+import { FlashcardProposalDto } from "@/types/flashcard";
+import { useState } from "react";
 
 interface FlashcardProposalFormProps {
   initialData?: FlashcardProposalDto;
@@ -7,14 +7,8 @@ interface FlashcardProposalFormProps {
   onCancel: () => void;
 }
 
-export const FlashcardProposalForm = ({
-  initialData,
-  onSubmit,
-  onCancel,
-}: FlashcardProposalFormProps) => {
-  const [formData, setFormData] = useState<FlashcardProposalDto>(
-    initialData || { front: '', back: '' }
-  );
+export const FlashcardProposalForm = ({ initialData, onSubmit, onCancel }: FlashcardProposalFormProps) => {
+  const [formData, setFormData] = useState<FlashcardProposalDto>(initialData || { front: "", back: "" });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,4 +60,4 @@ export const FlashcardProposalForm = ({
       </div>
     </form>
   );
-}; 
+};

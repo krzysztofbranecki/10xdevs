@@ -7,4 +7,4 @@ export function LoadingIndicator() {
       <span>Ładowanie...</span>
     </div>
   );
-} 
+}

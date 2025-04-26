@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   GenerateFlashcardsCommand,
   GenerateFlashcardsResultDto,
@@ -21,7 +22,13 @@ const generateFlashcardsSchema = z.object({
   ),
 });
 
-export async function POST({ request, locals }: { request: Request; locals: any }): Promise<Response> {
+export async function POST({
+  request,
+  locals,
+}: {
+  request: Request;
+  locals: { supabase: SupabaseClient };
+}): Promise<Response> {
   try {
     const supabase = locals.supabase;
 
@@ -89,12 +96,12 @@ export async function POST({ request, locals }: { request: Request; locals: any 
     };
     return new Response(JSON.stringify(response), { status: 200 });
   } catch (error: unknown) {
-    console.error(error);
     return new Response(
       JSON.stringify({
         error: "Internal Server Error",
         error_code: 500,
         details: "An unexpected error occurred",
+        error_details: error,
       } as ErrorResponseDto),
       { status: 500 }
     );
