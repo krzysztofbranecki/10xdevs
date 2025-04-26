@@ -26,8 +26,10 @@ export default defineConfig({
   ],
   // Web server to run before starting the tests
   webServer: {
-    command: "yarn build && node dist/server/entry.mjs",
-    url: "http://localhost:4321",
+    command: "yarn build && npx astro dev --host",
+    url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
+    stdout: "pipe",
+    stderr: "pipe",
   },
 });
