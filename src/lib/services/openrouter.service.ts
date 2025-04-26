@@ -2,6 +2,28 @@ import type { AxiosInstance } from "axios";
 import axios from "axios";
 import { z } from "zod";
 
+// Simple logger utility
+const logger = {
+  error: (message: string, ...args: unknown[]) => {
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.error(message, ...args);
+    }
+  },
+  warn: (message: string, ...args: unknown[]) => {
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.warn(message, ...args);
+    }
+  },
+  log: (message: string, ...args: unknown[]) => {
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.log(message, ...args);
+    }
+  },
+};
+
 // Types
 export interface OpenRouterConfig {
   apiKey: string;
@@ -117,8 +139,6 @@ export class OpenRouterService {
 
   private validateResponse(response: unknown): ChatResponse {
     try {
-      console.log("Raw response from OpenRouter:", response);
-
       if (!response || typeof response !== "object") {
         throw new OpenRouterError("Invalid response format from OpenRouter API", OpenRouterErrorType.VALIDATION_ERROR, {
           error: "Response is not an object",
@@ -163,7 +183,7 @@ export class OpenRouterService {
             messageContent = jsonMatch[0];
           }
         } catch (e) {
-          console.warn("Failed to parse JSON from response:", e);
+          logger.warn("Failed to parse JSON from response:", e);
         }
       }
 
@@ -173,9 +193,6 @@ export class OpenRouterService {
         rawResponse: validated,
       };
     } catch (error) {
-      console.error("Validation error:", error);
-      console.error("Response:", response);
-
       if (error instanceof z.ZodError) {
         throw new OpenRouterError("Invalid response format from OpenRouter API", OpenRouterErrorType.VALIDATION_ERROR, {
           error: error.errors,
@@ -193,23 +210,10 @@ export class OpenRouterService {
   }
 
   private async handleError(error: unknown): Promise<never> {
-    console.log("OpenRouter handleError:", error);
-
     if (axios.isAxiosError(error)) {
-      console.log("Axios error details:", {
-        response: error.response?.data,
-        status: error.response?.status,
-        headers: error.response?.headers,
-      });
-
       if (error.response) {
         const status = error.response.status;
         const data = error.response.data;
-
-        console.log("OpenRouter error response:", {
-          status,
-          data,
-        });
 
         // Return the error response directly with proper status code
         throw new OpenRouterError(data.error?.message || "OpenRouter API error", OpenRouterErrorType.API_ERROR, {
@@ -219,7 +223,6 @@ export class OpenRouterService {
       }
 
       if (error.request) {
-        console.log("Network error details:", error.request);
         throw new OpenRouterError(
           "Network error while communicating with OpenRouter API",
           OpenRouterErrorType.NETWORK_ERROR,
@@ -237,7 +240,6 @@ export class OpenRouterService {
 
     // Handle Zod validation errors
     if (error instanceof z.ZodError) {
-      console.log("Zod validation error:", error.errors);
       throw new OpenRouterError("Invalid response format from OpenRouter API", OpenRouterErrorType.VALIDATION_ERROR, {
         error,
         status: 400,

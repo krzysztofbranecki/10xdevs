@@ -8,8 +8,23 @@ interface User {
   name?: string;
 }
 
+// Minimal user type for testing flexibility
+interface MinimalUser {
+  id: string;
+  email?: string;
+  name?: string;
+}
+
+// Update interface to be more flexible for testing
 interface UserProfileProps {
-  supabaseClient: SupabaseClient;
+  supabaseClient:
+    | SupabaseClient
+    | {
+        auth: {
+          getUser: () => Promise<{ data: { user: MinimalUser | null }; error: { message: string } | null }>;
+          signOut: () => Promise<{ error: { message: string } | null }>;
+        };
+      };
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({ supabaseClient }) => {
@@ -24,13 +39,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({ supabaseClient }) => {
         const { data, error } = await supabaseClient.auth.getUser();
 
         if (error) {
-          throw error;
+          setError(error.message);
+          return;
         }
 
         if (data?.user) {
           setUser({
             id: data.user.id,
             email: data.user.email,
+            name: data.user.name,
           });
         }
       } catch (err) {
@@ -47,7 +64,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ supabaseClient }) => {
     try {
       setLoading(true);
       const { error } = await supabaseClient.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        setError(error.message);
+        return;
+      }
       setUser(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign out");

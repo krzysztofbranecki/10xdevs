@@ -4,4 +4,4 @@
   "devCommand": "yarn dev",
   "installCommand": "yarn install",
   "outputDirectory": "dist"
-} 
+}

@@ -7,9 +7,10 @@ Aplikacja 10x-cards została zaprojektowana jako nowoczesna, responsywna aplikac
 ## 2. Lista widoków
 
 ### Widok autoryzacji (/auth)
+
 - **Główny cel**: Rejestracja i logowanie użytkowników
 - **Kluczowe informacje**: Formularze rejestracji i logowania
-- **Kluczowe komponenty**: 
+- **Kluczowe komponenty**:
   - Form z walidacją
   - Alert dla błędów
   - Button dla akcji
@@ -19,8 +20,9 @@ Aplikacja 10x-cards została zaprojektowana jako nowoczesna, responsywna aplikac
   - Przejrzyste komunikaty błędów
 
 ### Dashboard (/)
+
 - **Główny cel**: Centralny punkt aplikacji z szybkim dostępem do głównych funkcji
-- **Kluczowe informacje**: 
+- **Kluczowe informacje**:
   - Statystyki generowania fiszek
   - Ostatnio dodane fiszki
   - Szybkie akcje
@@ -34,6 +36,7 @@ Aplikacja 10x-cards została zaprojektowana jako nowoczesna, responsywna aplikac
   - Responsywny design
 
 ### Widok generowania fiszek (/generate)
+
 - **Główny cel**: Generowanie fiszek z tekstu przy użyciu AI
 - **Kluczowe informacje**:
   - Pole tekstowe do wprowadzania treści
@@ -50,6 +53,7 @@ Aplikacja 10x-cards została zaprojektowana jako nowoczesna, responsywna aplikac
   - Możliwość edycji propozycji
 
 ### Widok moich fiszek (/flashcards)
+
 - **Główny cel**: Zarządzanie fiszkami użytkownika
 - **Kluczowe informacje**:
   - Lista wszystkich fiszek
@@ -66,6 +70,7 @@ Aplikacja 10x-cards została zaprojektowana jako nowoczesna, responsywna aplikac
   - Responsywny układ tabeli
 
 ### Widok sesji nauki (/study)
+
 - **Główny cel**: Nauka z wykorzystaniem algorytmu powtórek
 - **Kluczowe informacje**:
   - Bieżąca fiszka
@@ -81,6 +86,7 @@ Aplikacja 10x-cards została zaprojektowana jako nowoczesna, responsywna aplikac
   - Wizualne wskazówki postępu
 
 ### Widok profilu (/profile)
+
 - **Główny cel**: Zarządzanie ustawieniami konta
 - **Kluczowe informacje**:
   - Dane użytkownika
@@ -98,22 +104,26 @@ Aplikacja 10x-cards została zaprojektowana jako nowoczesna, responsywna aplikac
 ## 3. Mapa podróży użytkownika
 
 1. **Rejestracja/Logowanie**
+
    - Użytkownik wchodzi na stronę
    - Wybiera rejestrację lub logowanie
    - Po pomyślnej autoryzacji przechodzi do dashboardu
 
 2. **Dashboard**
+
    - Przegląd statystyk i ostatnich fiszek
    - Szybki dostęp do głównych funkcji
    - Możliwość przejścia do dowolnego modułu
 
 3. **Generowanie fiszek**
+
    - Wprowadzenie tekstu
    - Generowanie propozycji
    - Przegląd i akceptacja fiszek
    - Automatyczne dodanie do bazy
 
 4. **Zarządzanie fiszkami**
+
    - Przegląd wszystkich fiszek
    - Filtrowanie i wyszukiwanie
    - Edycja lub usuwanie
@@ -128,11 +138,13 @@ Aplikacja 10x-cards została zaprojektowana jako nowoczesna, responsywna aplikac
 ## 4. Układ i struktura nawigacji
 
 - **Główna nawigacja**:
+
   - NavigationMenu z shadcn/ui
   - Stałe elementy: Dashboard, Generuj, Moje fiszki, Nauka, Profil
   - Responsywny układ z hamburger menu na mobile
 
 - **Nawigacja kontekstowa**:
+
   - Breadcrumbs dla głębszych widoków
   - Przyciski powrotu w modalach
   - Szybkie linki w dashboardzie
@@ -145,31 +157,37 @@ Aplikacja 10x-cards została zaprojektowana jako nowoczesna, responsywna aplikac
 ## 5. Kluczowe komponenty
 
 ### Card
+
 - Wykorzystywany do wyświetlania fiszek
 - Responsywny układ
 - Obsługa interakcji (klik, hover)
 
 ### Modal
+
 - Do edycji fiszek
 - Potwierdzenia akcji
 - Formularze
 
 ### Toast
+
 - Powiadomienia o statusie operacji
 - Komunikaty błędów
 - Potwierdzenia sukcesu
 
 ### Table
+
 - Lista fiszek
 - Paginacja
 - Sortowanie i filtrowanie
 
 ### Form
+
 - Walidacja danych
 - Obsługa błędów
 - Dostępność
 
 ### NavigationMenu
+
 - Główna nawigacja
 - Responsywny układ
-- Obsługa klawiatury 
+- Obsługa klawiatury

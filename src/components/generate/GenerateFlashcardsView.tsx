@@ -13,7 +13,6 @@ export const GenerateFlashcardsView = () => {
 
   const handleGenerate = async () => {
     try {
-      console.log("handleGenerate");
       setError(null);
       setLoading(true);
 
@@ -36,11 +35,14 @@ export const GenerateFlashcardsView = () => {
       }
 
       const data = await response.json();
-      console.log("Received proposals:", data);
       setProposals(data.proposals);
       toast.success("Fiszki zostały wygenerowane!");
-    } catch (err) {
-      setError("Wystąpił błąd podczas generowania fiszek");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Wystąpił błąd podczas generowania fiszek");
+      }
       toast.error("Wystąpił błąd podczas generowania fiszek");
     } finally {
       setLoading(false);
@@ -77,7 +79,12 @@ export const GenerateFlashcardsView = () => {
       const newProposals = proposals.filter((_, i) => i !== index);
       setProposals(newProposals);
       toast.success("Fiszka została zapisana!");
-    } catch (err) {
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Wystąpił błąd podczas zapisywania fiszki");
+      }
       toast.error("Wystąpił błąd podczas zapisywania fiszki");
     }
   };

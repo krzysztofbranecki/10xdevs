@@ -8,12 +8,7 @@ interface FlashcardProposalListProps {
   onDecline: (index: number) => void;
 }
 
-export function FlashcardProposalList({
-  proposals,
-  onEdit,
-  onAccept,
-  onDecline,
-}: FlashcardProposalListProps) {
+export function FlashcardProposalList({ proposals, onEdit, onAccept, onDecline }: FlashcardProposalListProps) {
   if (proposals.length === 0) {
     return null;
   }
@@ -35,4 +30,4 @@ export function FlashcardProposalList({
       </div>
     </div>
   );
-} 
+}

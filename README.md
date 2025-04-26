@@ -9,7 +9,7 @@
 - **Frontend:** Astro 5, React 19, TypeScript 5, Tailwind CSS 4, Shadcn/ui
 - **Backend:** Supabase (PostgreSQL, authentication & real-time capabilities)
 - **AI:** Openrouter AI API integration for generating flashcard suggestions
-- **Testing:** 
+- **Testing:**
   - Unit Testing: Vitest (fast JavaScript test runner with React and TypeScript support)
   - E2E Testing: Playwright (cross-browser end-to-end testing framework)
 

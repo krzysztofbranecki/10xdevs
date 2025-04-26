@@ -1,18 +1,23 @@
 # Dokumentacja Endpointa: POST /api/flashcards/generate
 
 ## Opis Endpointa
+
 Endpoint służy do generowania propozycji fiszek przy użyciu algorytmów AI. Aktualnie, dane zwracane są na podstawie symulacji (mockowanych danych).
 
 ## Metoda HTTP
+
 **POST**
 
 ## URL
+
 `/api/flashcards/generate`
 
 ## Autoryzacja
+
 W tej wersji endpoint jest publiczny, autoryzacja została wyłączona.
 
 ## Request Body
+
 Oczekiwany format żądania to JSON:
 
 ```json
@@ -48,6 +53,7 @@ Oczekiwany format żądania to JSON:
 W przypadku błędów endpoint zwraca odpowiednie kody statusu wraz z komunikatem błędu.
 
 - **400 Bad Request:** Błąd walidacji danych wejściowych.
+
   - Przykładowa odpowiedź:
 
     ```json
@@ -58,6 +64,7 @@ W przypadku błędów endpoint zwraca odpowiednie kody statusu wraz z komunikate
     ```
 
 - **401 Unauthorized:** Brak autoryzacji. Użytkownik nie jest uwierzytelniony.
+
   - Przykładowa odpowiedź:
 
     ```json
@@ -68,6 +75,7 @@ W przypadku błędów endpoint zwraca odpowiednie kody statusu wraz z komunikate
     ```
 
 - **500 Internal Server Error:** Błąd wewnętrzny, np. podczas wywołania serwisu AI lub w przypadku innych problemów.
+
   - Przykładowa odpowiedź:
 
     ```json
@@ -88,4 +96,4 @@ W przypadku błędów endpoint zwraca odpowiednie kody statusu wraz z komunikate
 curl -X POST https://your-domain.com/api/flashcards/generate \
 -H 'Content-Type: application/json' \
 -d '{ "input_text": "Tekst o długości ...", "additional_options": { "model": "nazwa_modelu" } }'
-``` 
+```

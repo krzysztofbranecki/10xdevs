@@ -28,7 +28,7 @@ class OpenRouterService {
 
 ```typescript
 interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -83,10 +83,10 @@ class OpenRouterService {
 
 ```typescript
 enum OpenRouterErrorType {
-  API_ERROR = 'API_ERROR',
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  RATE_LIMIT_ERROR = 'RATE_LIMIT_ERROR'
+  API_ERROR = "API_ERROR",
+  VALIDATION_ERROR = "VALIDATION_ERROR",
+  NETWORK_ERROR = "NETWORK_ERROR",
+  RATE_LIMIT_ERROR = "RATE_LIMIT_ERROR",
 }
 
 class OpenRouterError extends Error {
@@ -110,11 +110,13 @@ class OpenRouterError extends Error {
 ## 6. Zagadnienia bezpieczeństwa
 
 1. Zarządzanie kluczami API
+
    - Przechowywanie kluczy API w zmiennych środowiskowych
    - Używanie bezpiecznej rotacji kluczy
    - Implementacja monitorowania użycia kluczy
 
 2. Ochrona danych
+
    - Szyfrowanie wrażliwych danych w trakcie przesyłania
    - Implementacja podpisywania żądań
    - Walidacja wszystkich danych wejściowych
@@ -129,6 +131,7 @@ class OpenRouterError extends Error {
 ### 7.1 Konfiguracja i ustawienia
 
 1. Utworzenie struktury katalogów usługi:
+
 ```
 src/
   lib/
@@ -140,11 +143,13 @@ src/
 ```
 
 2. Instalacja zależności:
+
 ```bash
 npm install axios zod @types/node
 ```
 
 3. Konfiguracja zmiennych środowiskowych:
+
 ```env
 OPENROUTER_API_KEY=twój_klucz_api
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
@@ -160,42 +165,44 @@ DEFAULT_MODEL=anthropic/claude-3-opus
 5. Dodanie obsługi błędów
 6. Implementacja mechanizmu ponownych prób
 
-
 ### 7.3 Przykład użycia
 
 ```typescript
 const openRouter = new OpenRouterService({
   apiKey: process.env.OPENROUTER_API_KEY,
-  defaultModel: 'anthropic/claude-3-opus'
+  defaultModel: "anthropic/claude-3-opus",
 });
 
-const response = await openRouter.sendMessage([
+const response = await openRouter.sendMessage(
+  [
+    {
+      role: "system",
+      content: "Jesteś pomocnym asystentem.",
+    },
+    {
+      role: "user",
+      content: "Cześć, jak się masz?",
+    },
+  ],
   {
-    role: 'system',
-    content: 'Jesteś pomocnym asystentem.'
-  },
-  {
-    role: 'user',
-    content: 'Cześć, jak się masz?'
+    temperature: 0.7,
+    maxTokens: 1000,
+    responseFormat: {
+      type: "json_schema",
+      json_schema: {
+        name: "chatResponse",
+        strict: true,
+        schema: {
+          type: "object",
+          properties: {
+            message: { type: "string" },
+            confidence: { type: "number" },
+          },
+        },
+      },
+    },
   }
-], {
-  temperature: 0.7,
-  maxTokens: 1000,
-  responseFormat: {
-    type: 'json_schema',
-    json_schema: {
-      name: 'chatResponse',
-      strict: true,
-      schema: {
-        type: 'object',
-        properties: {
-          message: { type: 'string' },
-          confidence: { type: 'number' }
-        }
-      }
-    }
-  }
-});
+);
 ```
 
 ## 8. Najlepsze praktyki
@@ -207,4 +214,4 @@ const response = await openRouter.sendMessage([
 5. Monitoruj użycie API i wydajność
 6. Utrzymuj zależności w aktualnej wersji
 7. Dokumentuj wszystkie metody publiczne
-8. Pisz kompleksowe testy 
+8. Pisz kompleksowe testy
