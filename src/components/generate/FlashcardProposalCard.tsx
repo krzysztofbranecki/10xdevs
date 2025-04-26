@@ -39,7 +39,9 @@ export function FlashcardProposalCard({ proposal, index, onEdit, onAccept, onDec
             <Textarea
               id={frontId}
               value={editedProposal.front}
-              onChange={(e) => setEditedProposal({ ...editedProposal, front: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setEditedProposal({ ...editedProposal, front: e.target.value })
+              }
               placeholder="Przód fiszki..."
               className="min-h-[100px]"
             />
@@ -51,7 +53,9 @@ export function FlashcardProposalCard({ proposal, index, onEdit, onAccept, onDec
             <Textarea
               id={backId}
               value={editedProposal.back}
-              onChange={(e) => setEditedProposal({ ...editedProposal, back: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setEditedProposal({ ...editedProposal, back: e.target.value })
+              }
               placeholder="Tył fiszki..."
               className="min-h-[100px]"
             />

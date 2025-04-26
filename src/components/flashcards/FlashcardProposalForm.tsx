@@ -1,4 +1,4 @@
-import { FlashcardProposalDto } from "@/types/flashcard";
+import type { FlashcardProposalDto } from "@/types/flashcard.ts";
 import { useState } from "react";
 
 interface FlashcardProposalFormProps {

@@ -9,8 +9,8 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "moduleResolution": "NodeNext",
-    "module": "NodeNext",
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
     "resolveJsonModule": true,
     "esModuleInterop": true
   }

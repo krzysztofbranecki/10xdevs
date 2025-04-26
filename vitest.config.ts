@@ -12,7 +12,15 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json", "html"],
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["node_modules/", "src/test/", "**/*.d.ts", "**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
+      exclude: [
+        "node_modules/",
+        "src/test/",
+        "**/*.d.ts",
+        "**/*.test.{ts,tsx}",
+        "**/*.spec.{ts,tsx}",
+        "__mocks__/",
+        "**/*.types.ts",
+      ],
       thresholds: {
         lines: 70,
         functions: 70,
