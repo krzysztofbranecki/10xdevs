@@ -9,6 +9,8 @@ dist/
 # dependencies
 node_modules/
 coverage/
+test-results/
+playwright-report/
 
 # logs
 npm-debug.log*
