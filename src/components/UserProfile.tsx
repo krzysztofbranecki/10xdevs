@@ -24,7 +24,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ supabaseClient }) => {
         const { data, error } = await supabaseClient.auth.getUser();
 
         if (error) {
-          throw error;
+          setError(error.message);
+          return;
         }
 
         if (data?.user) {
@@ -47,7 +48,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ supabaseClient }) => {
     try {
       setLoading(true);
       const { error } = await supabaseClient.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        setError(error.message);
+        return;
+      }
       setUser(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign out");
