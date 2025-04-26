@@ -26,7 +26,7 @@ export default defineConfig({
   ],
   // Web server to run before starting the tests
   webServer: {
-    command: "yarn preview",
+    command: "yarn build && node dist/server/entry.mjs",
     url: "http://localhost:4321",
     reuseExistingServer: !process.env.CI,
   },
