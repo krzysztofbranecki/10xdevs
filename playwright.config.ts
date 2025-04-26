@@ -9,7 +9,7 @@ export default defineConfig({
   reporter: [["html"], ["list"]],
   use: {
     // Base URL to use in actions like `await page.goto('/')`.
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:4321",
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3000",
 
     // Collect trace when retrying the failed test
     trace: "on-first-retry",
@@ -26,7 +26,8 @@ export default defineConfig({
   ],
   // Web server to run before starting the tests
   webServer: {
-    command: "yarn build && npx astro dev --host",
+    command:
+      "SUPABASE_URL=https://example.com SUPABASE_KEY=mock-key OPENROUTER_API_URL=https://example.com OPENROUTER_API_KEY=mock-key yarn build && SUPABASE_URL=https://example.com SUPABASE_KEY=mock-key OPENROUTER_API_URL=https://example.com OPENROUTER_API_KEY=mock-key npx astro dev --host",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     stdout: "pipe",
