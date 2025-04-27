@@ -38,5 +38,10 @@ export default defineConfig({
       external: ["react-dom/server", "react-dom/client"],
       noExternal: ["react-dom"],
     },
+    resolve: {
+      alias: import.meta.env.PROD && {
+        "react-dom/server": "react-dom/server.edge",
+      },
+    },
   },
 });

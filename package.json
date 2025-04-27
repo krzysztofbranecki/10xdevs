@@ -9,7 +9,7 @@
     "build:cloudflare": "astro build --config astro.config.cf.mjs",
     "preview": "astro preview",
     "astro": "astro",
-    "deploy": "astro build && wrangler deploy",
+    "deploy": "yarn build:cloudflare && wrangler deploy",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
