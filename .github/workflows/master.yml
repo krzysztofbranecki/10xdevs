@@ -58,6 +58,8 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    outputs:
+      deployment-url: ${{ steps.deploy-vercel.outputs.deployment-url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -72,6 +74,7 @@ jobs:
         run: yarn build
 
       - name: Deploy to Vercel
+        id: deploy-vercel
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ env.VERCEL_TOKEN }}
@@ -87,12 +90,54 @@ jobs:
     needs: [deploy]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Check deployment status
         id: check-status
         if: ${{ needs.deploy.result == 'success' }}
         run: echo "status=success" >> $GITHUB_OUTPUT
 
-      - name: Create deployment comment
+      - name: Find associated PR
+        id: find-pr
+        if: ${{ steps.check-status.outputs.status == 'success' }}
+        run: |
+          PR_NUMBER=$(git log -1 --pretty=oneline ${{ github.sha }} | grep -o '#[0-9]\+' | head -1 | sed 's/#//')
+          if [ -n "$PR_NUMBER" ]; then
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "Found PR #$PR_NUMBER"
+          else
+            echo "No PR number found in commit message"
+          fi
+
+      - name: Create PR comment
+        if: ${{ steps.check-status.outputs.status == 'success' && steps.find-pr.outputs.pr_number != '' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt('${{ steps.find-pr.outputs.pr_number }}');
+            const lastCommit = context.sha.substring(0, 7);
+            
+            if (prNumber) {
+              github.rest.issues.createComment({
+                issue_number: prNumber,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `✅ Deployment to production completed successfully!
+                
+                - PR: #${prNumber}
+                - Commit: ${lastCommit}
+                - Environment: Production
+                
+                The changes are now live.`
+              });
+              console.log(`Created comment on PR #${prNumber}`);
+            }
+
+      - name: Create commit comment
         if: ${{ steps.check-status.outputs.status == 'success' }}
         uses: actions/github-script@v7
         with:
