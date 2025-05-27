@@ -15,6 +15,7 @@ import PageWrapper from "../common/PageWrapper.astro";
       <div class="relative group">
         <input
           id="email"
+          name="email"
           type="email"
           placeholder="john.doe@example.com"
           class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-blue-200/60 focus:outline-none focus:border-blue-300/50 focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 group-hover:border-white/30"
@@ -35,6 +36,7 @@ import PageWrapper from "../common/PageWrapper.astro";
       <div class="relative group">
         <input
           id="password"
+          name="password"
           type="password"
           class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-blue-200/60 focus:outline-none focus:border-blue-300/50 focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 group-hover:border-white/30"
           required
@@ -64,3 +66,41 @@ import PageWrapper from "../common/PageWrapper.astro";
     </p>
   </div>
 </PageWrapper>
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector("form");
+    const errorDiv = document.querySelector('[data-test="auth-error"]');
+
+    if (form && errorDiv) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorDiv.classList.add("hidden");
+
+        const formData = new FormData(form);
+        const email = formData.get("email");
+        const password = formData.get("password");
+
+        try {
+          const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            errorDiv.textContent = data.error || "Wystąpił błąd podczas logowania";
+            errorDiv.classList.remove("hidden");
+          } else {
+            window.location.href = "/generate";
+          }
+        } catch (error) {
+          console.error("Login error:", error);
+          errorDiv.textContent = "Wystąpił błąd podczas logowania";
+          errorDiv.classList.remove("hidden");
+        }
+      });
+    }
+  });
+</script>
