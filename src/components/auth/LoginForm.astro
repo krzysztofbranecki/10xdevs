@@ -1,9 +1,49 @@
 ---
 import PageWrapper from "../common/PageWrapper.astro";
+
+// Definiujemy skrypt jako zmienną, którą można wyświetlić w szablonie
+const loginScript = `
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector("form");
+    const errorDiv = document.querySelector('[data-test="auth-error"]');
+
+    if (form && errorDiv) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorDiv.classList.add("hidden");
+        
+        const formData = new FormData(form);
+        const email = formData.get("email");
+        const password = formData.get("password");
+        
+        try {
+          const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok) {
+            errorDiv.textContent = data.error || "Wystąpił błąd podczas logowania";
+            errorDiv.classList.remove("hidden");
+          } else {
+            window.location.href = "/generate";
+          }
+        } catch (error) {
+          console.error("Login error:", error);
+          errorDiv.textContent = "Wystąpił błąd podczas logowania";
+          errorDiv.classList.remove("hidden");
+        }
+      });
+    }
+  });
+`;
 ---
 
 <PageWrapper title="Logowanie" description="Zaloguj się do swojego konta">
-  <form class="space-y-6">
+  <form class="space-y-6" method="POST" action="/api/auth/login">
     <div
       data-test="auth-error"
       class="hidden text-red-500 text-sm font-medium mb-4 p-3 bg-red-100/10 border border-red-500/20 rounded"
@@ -48,6 +88,8 @@ import PageWrapper from "../common/PageWrapper.astro";
       </div>
     </div>
 
+    <input type="hidden" name="redirectUrl" value="/generate" />
+
     <button
       type="submit"
       data-testid="login-button"
@@ -66,41 +108,6 @@ import PageWrapper from "../common/PageWrapper.astro";
     </p>
   </div>
 </PageWrapper>
-<script is:inline>
-  document.addEventListener("DOMContentLoaded", () => {
-    const form = document.querySelector("form");
-    const errorDiv = document.querySelector('[data-test="auth-error"]');
 
-    if (form && errorDiv) {
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        errorDiv.classList.add("hidden");
-
-        const formData = new FormData(form);
-        const email = formData.get("email");
-        const password = formData.get("password");
-
-        try {
-          const response = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            errorDiv.textContent = data.error || "Wystąpił błąd podczas logowania";
-            errorDiv.classList.remove("hidden");
-          } else {
-            window.location.href = "/generate";
-          }
-        } catch (error) {
-          console.error("Login error:", error);
-          errorDiv.textContent = "Wystąpił błąd podczas logowania";
-          errorDiv.classList.remove("hidden");
-        }
-      });
-    }
-  });
-</script>
+<!-- Renderowanie skryptu używając set:html -->
+<script set:html={loginScript} />

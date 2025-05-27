@@ -14,19 +14,14 @@ const { user } = Astro.locals;
 
     <div class="flex justify-end mb-4">
       <form method="POST" action="/api/auth/logout">
-        <button 
-          type="submit" 
-          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-        >
+        <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
           Wyloguj się
         </button>
       </form>
     </div>
 
     <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
-      <p class="text-lg text-center">
-        Miejsce na interfejs generowania fiszek.
-      </p>
+      <p class="text-lg text-center">Miejsce na interfejs generowania fiszek.</p>
     </div>
   </div>
 </Layout>
