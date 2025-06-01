@@ -1,0 +1,23 @@
+---
+import Layout from "../layouts/Layout.astro";
+import UserProfile from "../components/UserProfile.tsx";
+---
+
+<Layout>
+  <div
+    class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 p-4 sm:p-8"
+  >
+    <div
+      class="w-full max-w-md bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-xl rounded-2xl shadow-2xl p-8 text-white border border-white/10"
+    >
+      <h1
+        class="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 text-transparent bg-clip-text drop-shadow-lg"
+      >
+        Profil użytkownika
+      </h1>
+      <div class="bg-white/5 rounded-xl p-4">
+        <UserProfile client:load />
+      </div>
+    </div>
+  </div>
+</Layout>

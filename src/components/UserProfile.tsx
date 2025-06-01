@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "./Button";
 
 interface User {
@@ -8,26 +7,7 @@ interface User {
   name?: string;
 }
 
-// Minimal user type for testing flexibility
-interface MinimalUser {
-  id: string;
-  email?: string;
-  name?: string;
-}
-
-// Update interface to be more flexible for testing
-interface UserProfileProps {
-  supabaseClient:
-    | SupabaseClient
-    | {
-        auth: {
-          getUser: () => Promise<{ data: { user: MinimalUser | null }; error: { message: string } | null }>;
-          signOut: () => Promise<{ error: { message: string } | null }>;
-        };
-      };
-}
-
-export const UserProfile: React.FC<UserProfileProps> = ({ supabaseClient }) => {
+export default function UserProfile() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,42 +16,31 @@ export const UserProfile: React.FC<UserProfileProps> = ({ supabaseClient }) => {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabaseClient.auth.getUser();
-
-        if (error) {
-          setError(error.message);
+        const res = await fetch("/api/profile");
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || "Błąd pobierania profilu");
+          setUser(null);
           return;
         }
-
-        if (data?.user) {
-          setUser({
-            id: data.user.id,
-            email: data.user.email,
-            name: data.user.name,
-          });
-        }
+        const data = await res.json();
+        setUser(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred");
       } finally {
         setLoading(false);
       }
     };
-
     fetchUser();
-  }, [supabaseClient]);
+  }, []);
 
-  const handleSignOut = async () => {
+  const handleLogout = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { error } = await supabaseClient.auth.signOut();
-      if (error) {
-        setError(error.message);
-        return;
-      }
-      setUser(null);
+      await fetch("/api/logout", { method: "POST" });
+      window.location.href = "/login";
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sign out");
-    } finally {
+      setError("Błąd wylogowania");
       setLoading(false);
     }
   };
@@ -106,9 +75,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ supabaseClient }) => {
           </p>
         )}
       </div>
-      <Button onClick={handleSignOut} variant="secondary">
+      <Button onClick={handleLogout} variant="secondary">
         Sign Out
       </Button>
     </div>
   );
-};
+}

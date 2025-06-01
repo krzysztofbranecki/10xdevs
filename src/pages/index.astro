@@ -1,8 +1,39 @@
 ---
-import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout>
-  <Welcome />
+  <div
+    class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 p-4 sm:p-8"
+  >
+    <div
+      class="w-full max-w-md bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-xl rounded-2xl shadow-2xl p-8 text-white border border-white/10"
+    >
+      <h1
+        class="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 text-transparent bg-clip-text drop-shadow-lg"
+      >
+        Panel użytkownika
+      </h1>
+      <nav class="flex flex-col gap-4">
+        <a
+          href="/collections"
+          class="block w-full px-6 py-3 rounded-xl bg-blue-800/60 hover:bg-blue-700/80 transition-colors text-lg font-medium text-blue-100 text-center shadow"
+        >
+          📚 Kolekcje fiszek
+        </a>
+        <a
+          href="/generate"
+          class="block w-full px-6 py-3 rounded-xl bg-purple-800/60 hover:bg-purple-700/80 transition-colors text-lg font-medium text-purple-100 text-center shadow"
+        >
+          ⚡ Generator fiszek
+        </a>
+        <a
+          href="/profile"
+          class="block w-full px-6 py-3 rounded-xl bg-pink-800/60 hover:bg-pink-700/80 transition-colors text-lg font-medium text-pink-100 text-center shadow"
+        >
+          👤 Profil użytkownika
+        </a>
+      </nav>
+    </div>
+  </div>
 </Layout>
