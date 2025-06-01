@@ -1,0 +1,309 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import PageWrapper from "../../../components/common/PageWrapper.astro";
+
+// Pobieranie ID kolekcji z parametrów URL
+const { id } = Astro.params;
+
+// Sprawdzenie czy ID istnieje, w przeciwnym razie użyj domyślnej wartości
+const collectionId = id ? parseInt(id) : 1;
+
+// W przyszłości: pobieranie danych kolekcji z API
+// Teraz: przykładowe dane
+const collection = {
+  id: collectionId,
+  name: "Angielski podstawowy",
+  description: "Podstawowe słówka do nauki języka angielskiego",
+  cardCount: 42,
+  lastModified: "2023-09-15",
+};
+
+// Przykładowe fiszki z kolekcji
+const flashcards = [
+  { id: 1, front: "Apple", back: "Jabłko" },
+  { id: 2, front: "Book", back: "Książka" },
+  { id: 3, front: "Computer", back: "Komputer" },
+  { id: 4, front: "Dog", back: "Pies" },
+  { id: 5, front: "House", back: "Dom" },
+];
+
+// Skrypt do obsługi studiowania fiszek
+const studyScript = `
+  document.addEventListener("DOMContentLoaded", () => {
+    const flashcardContainer = document.getElementById('flashcard');
+    const frontContent = document.getElementById('frontContent');
+    const backContent = document.getElementById('backContent');
+    const nextButton = document.getElementById('nextButton');
+    const prevButton = document.getElementById('prevButton');
+    const flipButton = document.getElementById('flipButton');
+    const progressBar = document.getElementById('progressBar');
+    const currentIndexSpan = document.getElementById('currentIndex');
+    const totalCardsSpan = document.getElementById('totalCards');
+    
+    // Dane fiszek (pobrane z komponentu Astro)
+    const flashcards = ${JSON.stringify(flashcards)};
+    let currentIndex = 0;
+    let isFlipped = false;
+    
+    // Inicjalizacja
+    function updateCard() {
+      const card = flashcards[currentIndex];
+      if (frontContent) frontContent.textContent = card.front;
+      if (backContent) backContent.textContent = card.back;
+      
+      // Aktualizacja progresji
+      currentIndexSpan.textContent = (currentIndex + 1).toString();
+      totalCardsSpan.textContent = flashcards.length.toString();
+      
+      // Aktualizacja paska postępu
+      const progressPercent = ((currentIndex + 1) / flashcards.length) * 100;
+      progressBar.style.width = \`\${progressPercent}%\`;
+      
+      // Reset stanu karty
+      isFlipped = false;
+      flashcardContainer.classList.remove('flipped');
+      
+      // Aktualizacja stanu przycisków
+      prevButton.disabled = currentIndex === 0;
+      nextButton.disabled = currentIndex === flashcards.length - 1;
+    }
+    
+    // Obsługa kliknięcia przycisku następnej fiszki
+    if (nextButton) {
+      nextButton.addEventListener('click', () => {
+        if (currentIndex < flashcards.length - 1) {
+          currentIndex++;
+          updateCard();
+        }
+      });
+    }
+    
+    // Obsługa kliknięcia przycisku poprzedniej fiszki
+    if (prevButton) {
+      prevButton.addEventListener('click', () => {
+        if (currentIndex > 0) {
+          currentIndex--;
+          updateCard();
+        }
+      });
+    }
+    
+    // Obsługa kliknięcia przycisku odwracania fiszki
+    if (flipButton) {
+      flipButton.addEventListener('click', () => {
+        isFlipped = !isFlipped;
+        if (isFlipped) {
+          flashcardContainer.classList.add('flipped');
+        } else {
+          flashcardContainer.classList.remove('flipped');
+        }
+      });
+    }
+    
+    // Obsługa kliknięcia na fiszkę
+    if (flashcardContainer) {
+      flashcardContainer.addEventListener('click', () => {
+        isFlipped = !isFlipped;
+        if (isFlipped) {
+          flashcardContainer.classList.add('flipped');
+        } else {
+          flashcardContainer.classList.remove('flipped');
+        }
+      });
+    }
+    
+    // Inicjalizacja pierwszej fiszki
+    updateCard();
+    
+    // Obsługa klawiszy
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' && currentIndex < flashcards.length - 1) {
+        currentIndex++;
+        updateCard();
+      } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+        currentIndex--;
+        updateCard();
+      } else if (e.key === ' ' || e.key === 'Enter') {
+        isFlipped = !isFlipped;
+        if (isFlipped) {
+          flashcardContainer.classList.add('flipped');
+        } else {
+          flashcardContainer.classList.remove('flipped');
+        }
+      }
+    });
+  });
+`;
+
+// CSS dla animacji odwracania fiszki
+const flashcardStyles = `
+  .flashcard {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+    overflow: visible;
+  }
+  @media (min-width: 640px) {
+    .flashcard {
+      height: 350px;
+    }
+  }
+  .flashcard.flipped {
+    transform: rotateY(180deg);
+  }
+  .flashcard .card-back{
+    display: none;
+  }
+  .flashcard.flipped .card-front {
+    display: none;
+  }
+  .flashcard.flipped .card-back {
+    display: flex;
+  }
+  .card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+  .card-front {
+    /* front domyślnie widoczny */
+  }
+  .card-back {
+    transform: rotateY(180deg);
+  }
+  .card-content {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    text-align: center;
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    line-height: 1.2;
+  }
+  .flip-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 1.25rem;
+    transform: translateX(-50%);
+    color: #fff6;
+    font-size: 0.95rem;
+    pointer-events: none;
+    user-select: none;
+    transition: opacity 0.2s;
+  }
+`;
+---
+
+<Layout title={`Nauka: ${collection.name}`}>
+  <PageWrapper title={`Nauka: ${collection.name}`} description={collection.description} contentMaxWidth="max-w-2xl">
+    <div class="mb-6 flex justify-between items-center">
+      <a href="/collections" class="flex items-center text-blue-200 hover:text-blue-100 transition-colors">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-5 h-5 mr-1"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"></path>
+        </svg>
+        Powrót do kolekcji
+      </a>
+
+      <span class="text-blue-100/80">
+        <span id="currentIndex">1</span>/<span id="totalCards">{flashcards.length}</span>
+      </span>
+    </div>
+
+    <div class="relative w-full h-4 bg-white/5 rounded-full mb-8 overflow-hidden">
+      <div
+        id="progressBar"
+        class="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300"
+        style="width: 20%"
+      >
+      </div>
+    </div>
+
+    <div
+      id="flashcard"
+      class="flashcard relative w-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg rounded-xl border border-white/10 shadow-lg cursor-pointer mb-8"
+    >
+      <div class="card-face card-front bg-gradient-to-br from-indigo-900/30 to-blue-900/30">
+        <div id="frontContent" class="card-content font-medium text-blue-100"></div>
+        <div class="flip-hint">Kliknij, aby odwrócić</div>
+      </div>
+      <div class="card-face card-back bg-gradient-to-br from-purple-900/30 to-indigo-900/30">
+        <div id="backContent" class="card-content font-medium text-purple-200"></div>
+      </div>
+    </div>
+
+    <div class="flex justify-center space-x-4 mt-6">
+      <button
+        id="prevButton"
+        class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-5 h-5"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"></path>
+        </svg>
+      </button>
+
+      <button id="flipButton" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-5 h-5"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"></path>
+        </svg>
+      </button>
+
+      <button
+        id="nextButton"
+        class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-5 h-5"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="mt-8 text-center text-blue-200/60 text-sm">
+      <p>Wskazówka: Możesz używać klawiszy ← → do nawigacji i spacji do odwracania fiszki</p>
+    </div>
+  </PageWrapper>
+</Layout>
+
+<style set:html={flashcardStyles}></style>
+<script set:html={studyScript} />
