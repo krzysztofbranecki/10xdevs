@@ -85,13 +85,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     console.log("Registration successful for:", email);
 
-    return new Response(JSON.stringify({ 
-      user: data.user,
-      message: "Rejestracja zakończona pomyślnie! Sprawdź swoją skrzynkę email aby potwierdzić konto."
-    }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        user: data.user,
+        message: "Rejestracja zakończona pomyślnie! Sprawdź swoją skrzynkę email aby potwierdzić konto.",
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Unexpected error during registration:", error);
     return new Response(JSON.stringify({ error: "Wystąpił błąd podczas rejestracji" }), {
@@ -99,4 +102,4 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       headers: { "Content-Type": "application/json" },
     });
   }
-}; 
+};
