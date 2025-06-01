@@ -64,7 +64,9 @@ export async function POST({
         const encoder = new TextEncoder();
         const data = encoder.encode(command.input_text);
         const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+        return Array.from(new Uint8Array(hashBuffer))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
       })();
 
       // 2. Sprawdź czy source już istnieje
@@ -145,10 +147,9 @@ export async function POST({
     }
 
     // Zwróć proposals, rawResponse, generation_id i source_id
-    return new Response(
-      JSON.stringify({ proposals, rawResponse, generation_id: generationId, source_id: sourceId }),
-      { status: 200 }
-    );
+    return new Response(JSON.stringify({ proposals, rawResponse, generation_id: generationId, source_id: sourceId }), {
+      status: 200,
+    });
   } catch (error: unknown) {
     return new Response(
       JSON.stringify({
