@@ -51,10 +51,64 @@ export async function POST({
 
     let proposals: FlashcardProposalDto[] = [];
     let rawResponse: GenerateFlashcardsResultDto["rawResponse"] | undefined = undefined;
+    let generationId: string | null = null;
+    let sourceId: string | null = null;
     try {
       const result = await generateFlashcards(command, supabase);
       proposals = result.proposals;
       rawResponse = result.rawResponse;
+
+      // 1. Oblicz hash tekstu wejściowego
+      const textHash = await (async () => {
+        // Prosty hash, można zamienić na lepszy algorytm
+        const encoder = new TextEncoder();
+        const data = encoder.encode(command.input_text);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+      })();
+
+      // 2. Sprawdź czy source już istnieje
+      const { data: existingSource } = await supabase
+        .from("source")
+        .select("id")
+        .eq("text_hash", textHash)
+        .maybeSingle();
+
+      if (existingSource && existingSource.id) {
+        sourceId = existingSource.id;
+      } else {
+        // 3. Dodaj nowy rekord do source
+        const { data: newSource, error: sourceError } = await supabase
+          .from("source")
+          .insert({
+            model: rawResponse?.model || "unknown",
+            text_hash: textHash,
+            length: command.input_text.length,
+            source_type: "ai-full",
+            user_id: null, // Dodaj user_id jeśli masz dostęp
+          })
+          .select()
+          .single();
+        if (sourceError) {
+          throw new Error("Failed to save source: " + sourceError.message);
+        }
+        sourceId = newSource.id;
+      }
+
+      // 4. Dodaj wpis do generations
+      const { data: generation, error: generationError } = await supabase
+        .from("generations")
+        .insert({
+          generated_count: proposals.length,
+          user_id: null, // Dodaj user_id jeśli masz dostęp
+          source_id: sourceId,
+        })
+        .select()
+        .single();
+      if (generationError) {
+        throw new Error("Failed to save generation: " + generationError.message);
+      }
+      generationId = generation.id;
     } catch (err) {
       if (err instanceof FlashcardGenerationError) {
         // Log error to generation_errors_log table
@@ -90,11 +144,11 @@ export async function POST({
       );
     }
 
-    const response: GenerateFlashcardsResultDto = {
-      proposals,
-      rawResponse,
-    };
-    return new Response(JSON.stringify(response), { status: 200 });
+    // Zwróć proposals, rawResponse, generation_id i source_id
+    return new Response(
+      JSON.stringify({ proposals, rawResponse, generation_id: generationId, source_id: sourceId }),
+      { status: 200 }
+    );
   } catch (error: unknown) {
     return new Response(
       JSON.stringify({

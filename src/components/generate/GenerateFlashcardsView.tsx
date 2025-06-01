@@ -10,6 +10,8 @@ export const GenerateFlashcardsView = () => {
   const [proposals, setProposals] = useState<FlashcardProposalDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [generationId, setGenerationId] = useState<string | null>(null);
+  const [sourceId, setSourceId] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     try {
@@ -36,6 +38,8 @@ export const GenerateFlashcardsView = () => {
 
       const data = await response.json();
       setProposals(data.proposals);
+      setGenerationId(data.generation_id || null);
+      setSourceId(data.source_id || null);
       toast.success("Fiszki zostały wygenerowane!");
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -69,7 +73,7 @@ export const GenerateFlashcardsView = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(proposal),
+        body: JSON.stringify({ ...proposal, generation_id: generationId, source_id: sourceId }),
       });
 
       if (!response.ok) {
