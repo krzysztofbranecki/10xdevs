@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../../../db/database.types";
 
 export const prerender = false;
 
@@ -17,15 +18,29 @@ export async function GET({
   if (!userId) {
     return new Response(JSON.stringify({ collections: [] }), { status: 200 });
   }
+  // Fetch collections with card count for each
   const { data, error } = await locals.supabase
     .from("collections")
-    .select("id, name")
+    .select("id, name, description, created_at, updated_at, flashcards(count)")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
-  return new Response(JSON.stringify({ collections: data }), { status: 200 });
+  type CollectionWithFlashcards = Omit<Database["public"]["Tables"]["collections"]["Row"], "user_id"> & {
+    user_id?: string;
+    flashcards?: { count: number }[];
+  };
+  const collections = (data || []).map((col: CollectionWithFlashcards) => ({
+    id: col.id,
+    name: col.name,
+    description: col.description,
+    created_at: col.created_at,
+    updated_at: col.updated_at,
+    cardCount: col.flashcards?.[0]?.count || 0,
+    lastModified: col.updated_at || col.created_at,
+  }));
+  return new Response(JSON.stringify({ collections }), { status: 200 });
 }
 
 export async function POST({

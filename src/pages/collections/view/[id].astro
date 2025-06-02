@@ -1,47 +1,14 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import PageWrapper from "../../../components/common/PageWrapper.astro";
-import FlashcardsList from "../../../components/flashcards/FlashcardsList.tsx";
+import { CollectionView } from "../../../components/collections";
 
-// Mock data for demonstration
-const mockCollection = {
-  id: 1,
-  name: "Angielski podstawowy",
-  description: "Podstawowe słówka do nauki języka angielskiego",
-  cardCount: 42,
-  lastModified: "2023-09-15",
-};
-
-const flashcards = [
-  { id: 1, front: "Apple", back: "Jabłko" },
-  { id: 2, front: "Book", back: "Książka" },
-  { id: 3, front: "Computer", back: "Komputer" },
-  { id: 4, front: "Dog", back: "Pies" },
-  { id: 5, front: "House", back: "Dom" },
-];
+const { id } = Astro.params;
+const safeId = id ?? "";
 ---
 
-<Layout title={`Podgląd kolekcji: ${mockCollection.name}`}>
+<Layout title={`Podgląd kolekcji`}>
   <PageWrapper title="Podgląd kolekcji" description="Szczegóły wybranej kolekcji fiszek">
-    <div
-      class="max-w-xl mx-auto bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg rounded-xl p-8 border border-white/10 shadow-lg mb-8"
-    >
-      <h2 class="text-2xl font-semibold text-blue-100 mb-4">{mockCollection.name}</h2>
-      <p class="text-blue-200/80 text-base mb-6">{mockCollection.description}</p>
-      <div class="flex justify-between items-center text-sm text-blue-300/70 mb-8">
-        <span>{mockCollection.cardCount} fiszek</span>
-        <span>Ostatnia zmiana: {mockCollection.lastModified}</span>
-      </div>
-      <div class="flex justify-end space-x-3">
-        <a href="/collections" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
-          >Powrót</a
-        >
-      </div>
-    </div>
-
-    <div class="max-w-xl mx-auto">
-      <h3 class="text-xl font-semibold text-blue-100 mb-4">Fiszki w kolekcji</h3>
-      <FlashcardsList client:load flashcards={flashcards} />
-    </div>
+    <CollectionView client:only="react" collectionId={safeId} />
   </PageWrapper>
 </Layout>

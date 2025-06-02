@@ -39,7 +39,8 @@ export default function UserProfile() {
     try {
       await fetch("/api/logout", { method: "POST" });
       window.location.href = "/login";
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       setError("Błąd wylogowania");
       setLoading(false);
     }
