@@ -20,6 +20,12 @@ const safeUser = user && user.id && user.email ? { id: user.id, email: user.emai
         >
           Generator fiszek
         </a>
+        <a
+          href="/flashcards/create"
+          class="px-3 py-1.5 bg-green-600/80 hover:bg-green-600 text-white rounded-lg transition-colors text-sm"
+        >
+          Dodaj fiszkę
+        </a>
         <form method="POST" action="/api/auth/logout">
           <button
             type="submit"

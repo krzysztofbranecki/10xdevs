@@ -1,0 +1,11 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PageWrapper from "../../components/common/PageWrapper.astro";
+import { CreateFlashcard } from "../../components/flashcards";
+---
+
+<Layout title="Dodaj fiszkę">
+  <PageWrapper title="Dodaj fiszkę" description="Dodaj nową fiszkę bez przypisywania do kolekcji">
+    <CreateFlashcard client:only="react" />
+  </PageWrapper>
+</Layout>

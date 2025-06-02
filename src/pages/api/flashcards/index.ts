@@ -1,64 +1,30 @@
+import type { APIRoute } from "astro";
 import { z } from "zod";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CreateFlashcardCommand, ErrorResponseDto, FlashcardDto } from "../../../types";
 
 export const prerender = false;
 
-const createFlashcardSchema = z.object({
-  front: z.string().min(1, "front is required"),
-  back: z.string().min(1, "back is required"),
-  source_id: z.string().nullable().optional(),
-  generation_id: z.string().nullable().optional(),
-});
-
-export async function POST({
-  request,
-  locals,
-}: {
-  request: Request;
-  locals: { supabase: SupabaseClient; user?: { id: string }; source_id?: string };
-}): Promise<Response> {
-  try {
-    const supabase = locals.supabase;
-    const body = await request.json();
-    const result = createFlashcardSchema.safeParse(body);
-    if (!result.success) {
-      return new Response(
-        JSON.stringify({
-          error: "Invalid input data",
-          error_code: 400,
-          details: JSON.stringify(result.error.errors),
-        } as ErrorResponseDto),
-        { status: 400 }
-      );
-    }
-    const command: CreateFlashcardCommand = result.data;
-    const insertData = {
-      ...command,
-      user_id: locals.user?.id || null,
-      source_id: locals.source_id || command.source_id || null,
-    };
-    const { data, error } = await supabase.from("flashcards").insert(insertData).select().single();
-    if (error) {
-      return new Response(
-        JSON.stringify({
-          error: error.message,
-          error_code: 500,
-          details: error.details,
-        } as ErrorResponseDto),
-        { status: 500 }
-      );
-    }
-    return new Response(JSON.stringify(data as FlashcardDto), { status: 201 });
-  } catch (error: unknown) {
-    return new Response(
-      JSON.stringify({
-        error: "Internal Server Error",
-        error_code: 500,
-        details: "An unexpected error occurred",
-        error_details: error,
-      } as ErrorResponseDto),
-      { status: 500 }
-    );
+export const POST: APIRoute = async ({ locals, request }) => {
+  const { user, supabase } = locals;
+  if (!user || !supabase) {
+    return new Response(JSON.stringify({ error: "Brak autoryzacji" }), { status: 401 });
   }
-}
+  const body = await request.json();
+  const schema = z.object({
+    front: z.string().min(1).max(255),
+    back: z.string().min(1).max(255),
+  });
+  const parse = schema.safeParse(body);
+  if (!parse.success) {
+    return new Response(JSON.stringify({ error: "Nieprawidłowe dane" }), { status: 400 });
+  }
+  const { front, back } = parse.data;
+  const { data, error } = await supabase
+    .from("flashcards")
+    .insert({ front, back, user_id: user.id, collection_id: null })
+    .select()
+    .single();
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  }
+  return new Response(JSON.stringify(data), { status: 201 });
+};

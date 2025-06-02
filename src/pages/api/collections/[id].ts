@@ -29,6 +29,15 @@ export const GET: APIRoute = async ({ params, locals }) => {
   if (flashcardsError) {
     return new Response(JSON.stringify({ error: flashcardsError.message }), { status: 500 });
   }
+  // Fetch unassigned flashcards for this user
+  const { data: unassignedFlashcards, error: unassignedError } = await supabase
+    .from("flashcards")
+    .select("id, front, back")
+    .is("collection_id", null)
+    .eq("user_id", user.id);
+  if (unassignedError) {
+    return new Response(JSON.stringify({ error: unassignedError.message }), { status: 500 });
+  }
   return new Response(
     JSON.stringify({
       collection: {
@@ -39,6 +48,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
         updated_at: collection.updated_at,
       },
       flashcards: flashcards || [],
+      unassignedFlashcards: unassignedFlashcards || [],
     }),
     { status: 200 }
   );
